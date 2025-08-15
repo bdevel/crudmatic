@@ -1,0 +1,22 @@
+-# pass in locals: {records: [...], attrs: [:foo, :bar]}
+-# Can pass in actions: true which will call the block
+- attrs = local_assigns[:attrs] || local_assigns[:attributes] || []
+- attrs = records.map(&:keys).flatten.uniq if records.first.respond_to?(:keys) && attrs.blank?
+
+%table.table.table-striped.table-bordered.table-hover.table-condensed
+  %thead
+    %tr
+      - if local_assigns[:actions] && local_assigns[:actions].present?
+        %th Actions
+      - attrs.each do |a|
+        %th= model_attr_label(records.first, a)
+  %tbody
+    - records.each do |r|
+      %tr
+        - if local_assigns[:actions] && local_assigns[:actions].present?
+          %td.text-center.nowrap
+            .btn-group.nowrap
+              = yield r
+        - attrs.each do |a|
+          %td= formatted_value(r, a)
+          

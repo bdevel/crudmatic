@@ -1,0 +1,42 @@
+:javascript
+  function queryStringToObj(qs){
+    qs = qs.replace(/^\?/, '');
+    if (qs.length == 0){return {};}
+    return JSON.parse('{"' + decodeURI(qs).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+  }
+
+  function mergeQueryStrings(qs1, qs2){
+    var obj1 = queryStringToObj(qs1);
+    var obj2 = queryStringToObj(qs2);
+    var combo = $.extend(obj1, obj2);
+    var parts = [];
+
+    for(var k in combo){
+      if (combo[k]){
+        parts.push(k +"=" + encodeURI(combo[k]));
+      }
+    }
+    return parts.join('&');
+  }
+  
+  function updateQueryParamsFromDropdown(dropdown){
+    var query = location.search
+    var queryChange = dropdown.options[dropdown.selectedIndex].value;
+    var newQuery = '?' + mergeQueryStrings(query, queryChange);
+    var newUrl = window.location.pathname + newQuery;
+    window.location = newUrl;
+  }
+
+%div.navbar-form.navbar-right
+  - local_assigns.each do |name, opts|
+    .input-group
+      %label= "#{name.to_s.titleize}:"
+      %select(onchange="updateQueryParamsFromDropdown(this)" )
+        - opts.each do |vv|
+          -# Allow passing ["Label", "value"] or just "value"
+          - if vv.is_a?(Array)
+            - qs = "?#{name}=#{vv[1]}"
+            %option{value: qs, selected: (params[name.to_sym] == vv[1].to_s ? 'selected' : nil)}= vv[0]
+          - else
+            - qs = "?#{name}=#{vv}"
+            %option{value: qs, selected: (params[name.to_sym] == vv.to_s ? 'selected' : nil)}= vv.to_s.titleize

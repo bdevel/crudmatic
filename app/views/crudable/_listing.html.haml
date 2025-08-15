@@ -1,0 +1,126 @@
+- if local_assigns[:attributes]
+  - attributes = local_assigns[:attributes]
+- else
+  -# if records is empty, will rescue with []
+  - attributes = records.first.class.index_attributes rescue []
+
+- show_actions = true
+- show_actions = true if block_given?
+- show_actions = false if local_assigns[:actions] == false
+
+
+-# Only show 500 max for now.
+- if records.respond_to?(:arel) && records.arel.limit.nil?
+  - records = records.limit(500)
+  
+- if records.length > 0
+  .crud-listing
+    .table-responsive
+      %table.table.table-striped.table-bordered.table-hover.table-condensed
+        %thead
+          %tr
+            - if show_actions
+              %th
+                Actions
+                - if action_ok?(local_assigns[:actions], :bulk_edit)
+                  %div(style="float: right; font-weight: normal;")
+                    %a(href="#" onclick="$(this).closest('table').find('.bulk-checkbox').prop('checked', true); updateBulkSelection(this); return false;" title="Bulk select all") All
+                    = "/"
+                    %a(href="#" onclick="$(this).closest('table').find('.bulk-checkbox').prop('checked', false); updateBulkSelection(this); return false;" title="Clear bulk selection") None
+                    = "/"
+                    %a(href="#" onclick="$(this).closest('table').find('.bulk-checkbox').click(); updateBulkSelection(this); return false;" title="Invert bulk selection") Invert
+
+            - attributes.each do |f|
+              %th= model_attr_label(records.first, f)
+
+        %tbody
+          - records.each do |item|          
+            %tr
+              - if show_actions
+                -# {style: (local_assigns[:actions].nil? ? "width: 15em" : "")}
+                %td.text-center.nowrap
+                  .btn-group.nowrap
+                    - if action_ok?(local_assigns[:actions], :bulk_edit)
+                      %label
+                        = check_box_tag("bulk[]", item.id, false, id: "bulk-checkbox-#{item.id}", class:"bulk-checkbox")
+                        &nbsp;
+
+                    - if action_ok?(local_assigns[:actions], :show)
+                      = link_to view_path(item), class: 'btn btn-xs btn-default' do
+                        %span.glyphicon.glyphicon-eye-open
+                        Show
+                    - if action_ok?(local_assigns[:actions], :edit)
+                      = link_to new_or_edit_path(item), class: 'btn btn-xs btn-default' do
+                        %span.glyphicon.glyphicon-pencil
+                        Edit
+                    - if action_ok?(local_assigns[:actions], :delete)
+                      = link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: 'btn btn-xs btn-default', method: :delete do
+                        %span.glyphicon.glyphicon-trash
+                        Delete
+                    - if block_given?
+                      = yield item
+              - attributes.each.with_index do |f,i|
+                %td
+                  = formatted_value(item, f, :listing)
+    - if action_ok?(local_assigns[:actions], :bulk_edit)
+      .bulk-edit-form-container(style="display:none")
+        %h3 Bulk Update
+        - edit_attributes = local_assigns[:bulk_edit_attributes]
+        - edit_attributes = edit_attributes || (records.first.class.bulk_editable_attributes rescue nil)
+        - edit_attributes = edit_attributes || (records.first.class.editable_attributes rescue nil)
+        - form_record = records.first.class.new()
+        = form_for(form_record, :url => bulk_path(form_record.class), :method => "patch", html: { class: "form-horizontal", role: "form" }) do |f|
+          %input.bulk-ids-input(type="hidden" name="id" value="")
+          - edit_attributes.each do |attr|
+            -# makes sure the after_initialize hook defaults does not set these to non-nil which is needed to know whether to update
+            - form_record.send("#{attr}=", nil) 
+            .form-group
+              = f.label model_attr_label(form_record, attr), class: 'col-sm-2 control-label'
+              .col-sm-10
+                = crud_edit_attr(f, attr)
+                - if form_record.respond_to?(attr.to_s + "_input_notes")
+                  .help-block= form_record.send(attr.to_s + "_input_notes")
+
+          .form-group
+            .col-sm-2
+              &nbsp;
+            .col-sm-10          
+              = f.submit 'Update', class: 'btn btn-success'
+
+        %script(type="text/javascript")
+          :plain
+            function updateBulkSelection(el){
+              var container = $(el).closest('.crud-listing');
+              var ids = container.find('.bulk-checkbox').toArray().map(function(e){
+                if(e.checked){
+                  return e.value;
+                } else{
+                  return null;
+                }
+              }).filter(function(v){return v != null;})
+              
+              var input = container.find('.bulk-ids-input')[0];
+              input.value = ids.join(',');
+
+              if (ids.length > 0) {
+                container.find(".bulk-edit-form-container").show();
+                container.find(".bulk-edit-form-container h3").text("Bulk Update (" + ids.length + ")");
+
+              } else{
+                container.find(".bulk-edit-form-container").hide();
+              }
+            }
+
+            if(!window.didBulkReady) {
+              window.didBulkReady = true; // run just once
+              $(document).ready(function(){
+                // add the click handlers for all checkboxes
+                $('.bulk-checkbox').click(function(e){updateBulkSelection(e.target)});
+                
+                // if you push refresh, checkboxes will still be check, so run the update when ready
+                $('.bulk-edit-form-container form').each(function(i, el){updateBulkSelection(el)})
+              });
+            }
+
+
+

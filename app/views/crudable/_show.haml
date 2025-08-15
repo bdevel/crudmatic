@@ -1,0 +1,9 @@
+- show_attrs = local_assigns[:attrs] || record.class.show_attributes
+.form-horizontal
+  - show_attrs.each do |f|
+    .form-group
+      .col.col-sm-2.control-label
+        %label= model_attr_label(record, f)
+      .col.col-sm-10.form-control-static
+        = formatted_value(record, f, :show)
+        &nbsp;
