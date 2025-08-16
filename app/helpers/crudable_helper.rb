@@ -248,7 +248,7 @@ module CrudableHelper
       opts = record.select_options_for_belongs_to(attr.to_s.sub(/_id$/, ''))
       bt_attr = attr
       bt_attr = "#{attr}_id".to_sym unless attr.to_s =~ /_id$/
-      form.collection_select(bt_attr, opts, :id, :to_s, :prompt => '', :class => 'form-control', :include_blank => include_blank)
+      form.collection_select(bt_attr, opts, :id, :to_s, { prompt: '', include_blank: include_blank }, { class: 'form-control' })
 
     elsif type == :checkbox_multi
       opts = record.send("#{attr}_select_options")

@@ -13,7 +13,7 @@ class Book < ApplicationRecord
   # Crudable configuration
   crudable :index_attributes, [:title, :author, :category, :publication_year, :status]
   crudable :show_attributes, proc { |attrs| attrs - [:author_id, :category_id] + [:author, :category] }
-  crudable :edit_attributes, [:title, :isbn, :publication_year, :description, :author_id, :category_id, :status, :pages]
+  crudable :edit_attributes, [:title, :isbn, :publication_year, :description, :author, :category, :status, :pages]
   crudable :search_attributes, [:title, :isbn, :description]
   crudable :api_attributes, [:id, :title, :isbn, :publication_year, :description, :pages, :status, :author, :category]
   crudable :pagination_limit, 5  # Show only 5 books per page for demo purposes

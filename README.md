@@ -1,13 +1,13 @@
 # Crudable Rails Engine
 
-A powerful Rails engine that provides instant CRUD (Create, Read, Update,
-Delete) functionality for your models with zero view duplication. Simply include
-the `CrudableRecord` concern in your models, configure attributes, and get a
-fully functional admin interface. 
+A powerful Rails engine that automatically builds listing pages, forms, and show
+pages using a central customizable template, based on your ActiveRecord model
+columns. Simply include the `CrudableRecord` concern in your models, configure
+which attributes to display, and get a fully functional data entry interface.
 
 ## Features
 
-- ✅ **Zero View Duplication** - One engine, all your models
+- ✅ **Automatic View Generation** - One template system for all your models
 - ✅ **Flexible Configuration** - DSL-style configuration per model
 - ✅ **Bootstrap 5 Ready** - Modern, responsive UI out of the box
 - ✅ **JSON:API Endpoints** - RESTful JSON APIs following the JSON:API specification
@@ -16,6 +16,17 @@ fully functional admin interface.
 - ✅ **Pagination & Sorting** - Built-in offset-based pagination
 - ✅ **Search Functionality** - Configurable search across attributes
 - ✅ **Template Overrides** - Customize any view to match your needs
+
+## Screenshots
+
+### Index Page with Search and Pagination
+![Index Page Example](docs/example-index-page.jpg)
+
+### Show Page with Nested Relationships  
+![Show Page Example](docs/example-show-page.jpg)
+
+### Edit Form with Custom Input Types
+![Edit Page Example](docs/example-edit-page.jpg)
 
 ## Quick Start
 
@@ -30,7 +41,7 @@ class Book < ApplicationRecord
   
   # Basic configuration - that's it!
   crudable :index_attributes, [:title, :author, :category, :status]
-  crudable :edit_attributes, [:title, :author_id, :category_id, :status]
+  crudable :edit_attributes, [:title, :author, :category, :status]
 end
 ```
 
@@ -217,7 +228,8 @@ class Author < ApplicationRecord
     attrs + [{books: [:title, :isbn, :status]}] 
   }
   
-  # With actions specified (disallow :delete)
+  # With actions specified. Don't show the "delete" button.
+  # NOTE, this does not disable the DESTROY action on the controller.
   crudable :show_attributes, proc { |attrs| 
     attrs + [{books: {attributes: [:title, :status], actions: [:show, :edit]}}] 
   }
@@ -445,6 +457,77 @@ rails server -p 5000
 ```
 
 Visit http://localhost:5000 to see Crudable in action!
+
+## What Crudable Does NOT Provide
+
+Crudable is focused on providing CRUD interfaces and does not implement the
+following security and business logic features. These are are left for you to
+decide how to implement.
+
+### 🚫 **Authentication & Authorization**
+- **No user authentication** - You need to implement login/logout yourself
+- **No authorization/permissions** - No built-in role-based access control
+- **No API authentication** - JSON endpoints are open by default
+- **No action-level permissions** - All CRUD actions are available to all users
+
+### 🚫 **Data Security**
+- **No input validation** - You must add your own `validates` in your models
+- **No password encryption** - Use `has_secure_password` or Devise for user auth
+- **No sensitive data protection** - No automatic filtering of sensitive fields
+- **No SQL injection or Cross-site scripting (XSS) protection beyond Rails defaults**
+
+### 🚫 **Business Logic**
+- **No workflow management** - No state machines or approval processes  
+- **No audit trails** - No automatic logging of changes
+- **No soft deletes** - Records are permanently deleted
+- **No versioning** - No history of record changes
+
+### 🚫 **Advanced Features**
+- **No file uploads** - No image/document handling
+- **No email notifications** - No automatic emails for actions
+- **No background jobs** - No async processing
+- **No caching** - No performance optimizations beyond basic pagination
+
+### ⚠️ **Security Considerations**
+
+**Crudable is designed for admin interfaces and internal tools.** For public-facing applications, you must implement:
+
+```ruby
+# Add your own authentication
+class BooksController < CrudableController
+  before_action :authenticate_user!
+  before_action :require_admin!
+end
+
+# Add your own validations
+class Book < ApplicationRecord
+  include CrudableRecord
+  
+  validates :title, presence: true, length: { maximum: 255 }
+  validates :isbn, presence: true, uniqueness: true
+  # Add more validations as needed
+end
+
+# Add your own authorization
+class BooksController < CrudableController
+  before_action :check_permissions
+  
+  # override to customize
+  def destroy
+    @record.update(status: "deleted")
+  end
+  
+  private
+  
+  def check_permissions
+    redirect_to root_path unless current_user.can_manage_books?
+  end
+end
+```
+
+**Use Crudable for:** Admin panels, internal tools, prototyping, development interfaces
+
+**Don't use Crudable for:** Public APIs, user-facing forms, production apps without additional security
 
 ## Requirements
 
