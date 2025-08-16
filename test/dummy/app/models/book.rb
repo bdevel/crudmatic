@@ -12,7 +12,7 @@ class Book < ApplicationRecord
   
   # Crudable configuration
   crudable :index_attributes, [:title, :author, :category, :publication_year, :status]
-  crudable :show_attributes, proc { |attrs| attrs + [:author, :category] }
+  crudable :show_attributes, proc { |attrs| attrs - [:author_id, :category_id] + [:author, :category] }
   crudable :edit_attributes, [:title, :isbn, :publication_year, :description, :author_id, :category_id, :status, :pages]
   crudable :search_attributes, [:title, :isbn, :description]
   crudable :api_attributes, [:id, :title, :isbn, :publication_year, :description, :pages, :status, :author, :category]

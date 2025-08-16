@@ -1,0 +1,5 @@
+<h2><%= page_title %></h2>
+<% begin %>
+  <%= render partial: "#{controller.model_class.to_s.downcase.underscore.pluralize}/#{params[:action]}_content" %>
+<% rescue ActionView::MissingTemplate => e %>
+<% end %>

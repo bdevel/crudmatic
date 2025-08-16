@@ -1,0 +1,18 @@
+<% if record.present? %>
+  <% attrs = local_assigns[:attrs] || local_assigns[:attributes] || [] %>
+  <% attrs = record.keys if record.respond_to?(:keys) && attrs.blank? %>
+  <% raise RuntimeError.new("Hashmap show partial could not determine attributes of record type #{record.class.to_s}") if attrs.blank? %>
+  <div class="form-horizontal">
+    <% attrs.each do |k| %>
+      <div class="form-group">
+        <div class="col col-sm-2 control-label">
+          <label><%= titleize_attr k.to_s.gsub(".", " ") %></label>
+        </div>
+        <div class="col col-sm-10 form-control-static">
+          <%= formatted_value(record,  k.to_s.split('.').map(&:to_sym), :show) %>
+          &nbsp;
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

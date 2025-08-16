@@ -1,0 +1,14 @@
+<% show_attrs = local_assigns[:attrs] || record.class.show_attributes %>
+<div>
+  <% show_attrs.each do |f| %>
+    <div class="row mb-3">
+      <label class="col-sm-2 col-form-label text-end fw-bold"><%= model_attr_label(record, f) %></label>
+      <div class="col-sm-10">
+        <div class="form-control-plaintext">
+          <%= formatted_value(record, f, :show) %>
+          &nbsp;
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

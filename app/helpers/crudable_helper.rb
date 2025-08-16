@@ -386,12 +386,18 @@ module CrudableHelper
       end
       
     elsif val.respond_to?(:model_name)
-      path = view_path(val)
-      
-      if path
-        link_to val.to_s, view_path(val)
+      # Check if we have custom attributes to display for this single object
+      if listing_attributes && listing_attributes.any?
+        return render :partial => 'crudable/show', locals: {record: val, 
+          attrs: listing_attributes}
       else
-        val.to_s
+        path = view_path(val)
+        
+        if path
+          link_to val.to_s, view_path(val)
+        else
+          val.to_s
+        end
       end
 
       

@@ -6,12 +6,12 @@ Gem::Specification.new do |spec|
   spec.authors     = [ "bdevel" ]
   spec.email       = [ "github@polar-concepts.com" ]
   spec.homepage    = "https://github.com/bdevel/crudable"
-  spec.summary     = "Ruby on Rails helpers to create CRUD interface ActiveRecords."
-  spec.description = "Ruby on Rails helpers to create CRUD interface ActiveRecords."
+  spec.summary     = "A web interface for CRUD operations for Ruby on Rails ActiveRecords."
+  spec.description = "Automatically generates the index, show, and edit pages. Allows for customization."
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the "allowed_push_host"
   # to allow pushing to a single host or delete this section to allow pushing to any host.
-  spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
+  #spec.metadata["allowed_push_host"] = "TODO: Set to 'http://mygemserver.com'"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = spec.homepage
