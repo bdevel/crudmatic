@@ -571,6 +571,14 @@ module CrudableHelper
     end
   end
   
+  def active_nav_item_class(url)
+    if request.path == url
+      'active'
+    else
+      ''
+    end
+  end
+  
   def action_ok?(ok_actions, action)
     # nil means allow all. False means no actions
     return false if ok_actions == false

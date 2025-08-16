@@ -52,10 +52,18 @@ module Crudable
     end
     
     def input_note_for(attr)
+      # Handle Hash objects (associations) by extracting the key
+      if attr.is_a?(Hash)
+        attr = attr.keys.first
+      end
       @configs.dig(:input_note, attr.to_sym)
     end
     
     def label_for(attr)
+      # Handle Hash objects (associations) by extracting the key
+      if attr.is_a?(Hash)
+        attr = attr.keys.first
+      end
       @configs.dig(:label, attr.to_sym)
     end
     

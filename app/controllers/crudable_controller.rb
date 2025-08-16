@@ -2,12 +2,8 @@ class CrudableController < ApplicationController
   rescue_from ActiveRecord::RecordNotFound, :with => :record_not_found
   include CrudableHelper
 
-  before_action :override_engine_views
-  def override_engine_views
-    #raise File.join(Crudable::Engine.root, 'app', 'views', 'crudable')
-    prepend_view_path File.join(Crudable::Engine.root, 'app', 'views', 'crudable')
-  end
-
+  append_view_path File.join(Crudable::Engine.root, 'app', 'views', 'crudable')
+  
   class << self
     # allow accessing MyItemsController.crud_actions 
     attr_accessor :model_class

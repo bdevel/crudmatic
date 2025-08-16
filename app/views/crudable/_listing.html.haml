@@ -46,15 +46,15 @@
                         &nbsp;
 
                     - if action_ok?(local_assigns[:actions], :show)
-                      = link_to view_path(item), class: 'btn btn-xs btn-default' do
+                      = link_to view_path(item), class: 'btn btn-xs btn-light', role: 'button' do
                         %span.glyphicon.glyphicon-eye-open
                         Show
                     - if action_ok?(local_assigns[:actions], :edit)
-                      = link_to new_or_edit_path(item), class: 'btn btn-xs btn-default' do
+                      = link_to new_or_edit_path(item), class: 'btn btn-xs btn-light', role: 'button' do
                         %span.glyphicon.glyphicon-pencil
                         Edit
                     - if action_ok?(local_assigns[:actions], :delete)
-                      = link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: 'btn btn-xs btn-default', method: :delete do
+                      = link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: 'btn btn-xs btn-light', role: 'button', method: :delete do
                         %span.glyphicon.glyphicon-trash
                         Delete
                     - if block_given?

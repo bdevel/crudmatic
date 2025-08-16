@@ -23,7 +23,7 @@
           %ul.pagination.justify-content-end
             - if @has_previous
               %li.page-item
-                = link_to "Previous", url_for(params.merge(offset: @previous_offset)), class: "page-link"
+                = link_to "Previous", url_for(request.query_parameters.merge(offset: @previous_offset)), class: "page-link"
             - else
               %li.page-item.disabled
                 %span.page-link Previous
@@ -36,12 +36,12 @@
                     %span.page-link= page
                 - else
                   %li.page-item
-                    = link_to page, url_for(params.merge(offset: page_offset)), class: "page-link"
+                    = link_to page, url_for(request.query_parameters.merge(offset: page_offset)), class: "page-link"
             - else
               -# Show abbreviated pagination for many pages
               - if @current_page > 3
                 %li.page-item
-                  = link_to "1", url_for(params.merge(offset: 0)), class: "page-link"
+                  = link_to "1", url_for(request.query_parameters.merge(offset: 0)), class: "page-link"
                 - if @current_page > 4
                   %li.page-item.disabled
                     %span.page-link ...
@@ -53,7 +53,7 @@
                     %span.page-link= page
                 - else
                   %li.page-item
-                    = link_to page, url_for(params.merge(offset: page_offset)), class: "page-link"
+                    = link_to page, url_for(request.query_parameters.merge(offset: page_offset)), class: "page-link"
               
               - if @current_page < @total_pages - 2
                 - if @current_page < @total_pages - 3
@@ -61,11 +61,11 @@
                     %span.page-link ...
                 - last_offset = (@total_pages - 1) * @limit
                 %li.page-item
-                  = link_to @total_pages, url_for(params.merge(offset: last_offset)), class: "page-link"
+                  = link_to @total_pages, url_for(request.query_parameters.merge(offset: last_offset)), class: "page-link"
                   
             - if @has_next
               %li.page-item
-                = link_to "Next", url_for(params.merge(offset: @next_offset)), class: "page-link"
+                = link_to "Next", url_for(request.query_parameters.merge(offset: @next_offset)), class: "page-link"
             - else
               %li.page-item.disabled
                 %span.page-link Next
