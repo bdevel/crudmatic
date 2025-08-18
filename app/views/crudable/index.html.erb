@@ -1,4 +1,4 @@
-<%= render 'crudable/nav', record: @records, actions: controller.crud_actions %>
+<%= render 'crudable/nav', record: controller.model_class, actions: controller.crud_actions %>
 <%= render 'crudable/header', record: @records %>
 
 <% begin %>
