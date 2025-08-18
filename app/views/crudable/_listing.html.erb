@@ -60,13 +60,13 @@
                         Show
                       <% end %>
                     <% end %>
-                    <% if action_ok?(local_assigns[:actions], :edit) %>
+                    <% if action_ok?(local_assigns[:actions], :update) %>
                       <%= link_to new_or_edit_path(item), class: 'btn btn-xs btn-outline-primary', role: 'button' do %>
                         <i class="bi bi-pencil"></i>
                         Edit
                       <% end %>
                     <% end %>
-                    <% if action_ok?(local_assigns[:actions], :delete) %>
+                    <% if action_ok?(local_assigns[:actions], :destroy) %>
                       <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: 'btn btn-xs btn-outline-danger', role: 'button', method: :delete do %>
                         <i class="bi bi-trash"></i>
                         Delete

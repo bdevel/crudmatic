@@ -56,10 +56,12 @@ end
 ### 3. Create Controller
 
 ```ruby
-# Inherit from CrudableController
-class BooksController < CrudableController
-  # optionally, specify a different model
-  self.model_class = Book 
+# Include CrudableControllerMethods in your controller
+class BooksController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Book
+  crudable_actions [:index, :show, :create, :update, :destroy]
 end
 ```
 
@@ -494,7 +496,12 @@ decide how to implement.
 
 ```ruby
 # Add your own authentication
-class BooksController < CrudableController
+class BooksController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Book
+  crudable_actions [:index, :show, :create, :update, :destroy]
+  
   before_action :authenticate_user!
   before_action :require_admin!
 end
@@ -509,12 +516,18 @@ class Book < ApplicationRecord
 end
 
 # Add your own authorization
-class BooksController < CrudableController
+class BooksController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Book
+  crudable_actions [:index, :show, :create, :update] # Note: no :destroy
+  
   before_action :check_permissions
   
-  # override to customize
+  # override to customize (soft delete instead of hard delete)
   def destroy
     @record.update(status: "deleted")
+    redirect_to index_path(model_class), notice: "#{model_class} was marked as deleted."
   end
   
   private

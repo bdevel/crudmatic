@@ -1,6 +1,9 @@
-class AuthorsController < CrudableController
-  self.model_class = Author
+class AuthorsController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Author
+  crudable_actions [:index, :show, :create, :update, :destroy]
   
   # Optional: Override any methods if needed for custom behavior
-  # For now, we'll use all the default CRUD actions from CrudableController
+  # For now, we'll use all the default CRUD actions from CrudableControllerMethods
 end

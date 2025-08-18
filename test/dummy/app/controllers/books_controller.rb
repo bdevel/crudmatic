@@ -1,6 +1,9 @@
-class BooksController < CrudableController
-  #  self.model_class = Book
+class BooksController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Book
+  crudable_actions [:index, :show, :create, :update, :destroy]
   
   # Optional: Override any methods if needed for custom behavior
-  # For now, we'll use all the default CRUD actions from CrudableController
+  # For now, we'll use all the default CRUD actions from CrudableControllerMethods
 end
