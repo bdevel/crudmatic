@@ -79,13 +79,22 @@ module CrudableHelper
     end
   end
 
-  # Fallback if translation is not available.
+  # Used to auto format the labels. Override to extend.
+  # {"ip" => "IP"}
+  def abbreviation_table
+    acronyms = %w{url ip id api} # Will UPCASE these
+    acronyms.reduce({}) do |t, a|
+      t[a] = a.upcase
+      t
+    end
+  end
+  
   def titleize_attr(attr)
-    acronyms = %w{url ip asn sim iccid imei adb id api hms gtr vk dpc dps tld csn tv http socks socks5} # Will UPCASE these
-    t = attr.to_s.gsub('_', ' ').titleize #.gsub(/\bId\b/, "ID")
+    t = attr.to_s.gsub('_', ' ').titleize
 
-    acronyms.each do |a|
-      t = t.sub(/\b#{a.titleize}\b/, a.upcase)
+    # fix the abbreviations to upcase
+    abbreviation_table.each do |a, aa|
+      t = t.sub(/\b#{a.to_s.titleize}\b/, aa)
     end
     t
   end
@@ -137,9 +146,30 @@ module CrudableHelper
 
   # end
 
+  # Choose the appropriate form wrapper based on engine configuration
+  def extend_form(form)
+    framework = Rails.application.config.crudable&.css_framework || :bootstrap
+    
+    case framework
+    when :tailwind
+      Crudable::TailwindForm.new(form, self)
+    when :bootstrap
+      Crudable::BootstrapForm.new(form, self)
+    else
+      # Fallback to bootstrap if unknown framework
+      Crudable::BootstrapForm.new(form, self)
+    end
+  end
+
+  # Get CSS classes for the configured framework
+  def css_classes
+    @css_classes ||= Crudable::CssClasses.for_framework(
+      Rails.application.config.crudable&.css_framework || :bootstrap
+    )
+  end
+
   def crud_edit_attr(form, attr, settings=nil)
     settings = {} if settings.nil?
-    #settings = {include_blank: false} if settings.nil?
     record = form.object
     model = record.class
 
@@ -148,6 +178,9 @@ module CrudableHelper
     rescue ActionView::MissingTemplate => e
       # Ignore, do default
     end
+    
+    # Create form wrapper based on engine configuration
+    form_wrapper = extend_form(form)
     
     # reflection api http://api.rubyonrails.org/classes/ActiveRecord/Reflection/ClassMethods.html
     belongs_tos = model.reflect_on_all_associations(:belongs_to).map {|a| a.name}    
@@ -160,9 +193,6 @@ module CrudableHelper
     if record.respond_to?(:crudable_config)
       type = record.crudable_config.input_type_for(attr)
       opts = record.crudable_config.select_options_for(attr, record)
-    #elsif record.respond_to?("#{attr}_input_type")
-    #  type = record.send("#{attr}_input_type") #allow override, useful for JSON db type
-    #  opts = record.send(attr.to_s + "_select_options") rescue nil
     elsif belongs_tos.include?(attr.to_s.sub(/_id$/, '').to_sym)
       type = :belongs_to
       opts = nil
@@ -175,18 +205,9 @@ module CrudableHelper
       raise "unknown type for attribute #{attr.inspect}"
     end
 
-
     
     if type == :radio && opts
-      content_tag(:div, class: 'radio-group') do
-        opts.map do |option|
-          content_tag(:div, class: 'radio') do
-            content_tag(:label) do
-              form.radio_button(attr, option, class: 'form-control-radio') + " #{option}"
-            end
-          end
-        end.join.html_safe
-      end
+      form_wrapper.radio_button_group(attr, opts)
       
     elsif type == :select && opts
       val = record_attr_value(record, attr)
@@ -199,7 +220,7 @@ module CrudableHelper
         include_blank = !model.validators_on(attr).map(&:kind).include?(:presence) rescue false
       end
       
-      form.collection_select(attr, opts, :to_s, :to_s, {include_blank: include_blank}, {class: 'form-control'})
+      form_wrapper.collection_select(attr, opts, :to_s, :to_s, {include_blank: include_blank})
       
     elsif type == :string && opts
       val = record_attr_value(record, attr)
@@ -212,30 +233,30 @@ module CrudableHelper
         include_blank = !model.validators_on(attr).map(&:kind).include?(:presence) rescue false
       end
       
-      form.collection_select(attr, opts, :to_s, :to_s, {include_blank: include_blank}, {class: 'form-control'})
+      form_wrapper.collection_select(attr, opts, :to_s, :to_s, {include_blank: include_blank})
       
     elsif type == :string || type == :json
-      form.text_field(attr, :class => 'form-control')
+      form_wrapper.text_field(attr)
       
     elsif type == :text
       lines = formatted_value(record, attr).to_s.split("\n").size
       lines = [20,lines].min # max of 20 lines
-      form.text_area(attr, :class => 'form-control', :rows => [lines, 3].max)
+      form_wrapper.text_area(attr, :rows => [lines, 3].max)
       
     elsif type == :boolean
-      form.check_box(attr, :class => '')
+      form_wrapper.check_box(attr)
       
     elsif type == :integer
-      form.number_field(attr, :class => 'form-control')
+      form_wrapper.number_field(attr)
       
     elsif type == :float || type == :decimal
-      form.number_field(attr, :class => 'form-control', :step => 0.01)
+      form_wrapper.number_field(attr, :step => 0.01)
       
     elsif type == :date
-      form.date_field(attr, :class => 'form-control')
+      form_wrapper.date_field(attr)
       
     elsif type == :datetime
-      form.datetime_field(attr, :class => 'form-control')
+      form_wrapper.datetime_field(attr)
       
     elsif type == :belongs_to
       # needs to match the association name with the column name, not so great if configured differently
@@ -247,7 +268,7 @@ module CrudableHelper
       opts = record.select_options_for_belongs_to(attr.to_s.sub(/_id$/, ''))
       bt_attr = attr
       bt_attr = "#{attr}_id".to_sym unless attr.to_s =~ /_id$/
-      form.collection_select(bt_attr, opts, :id, :to_s, { prompt: '', include_blank: include_blank }, { class: 'form-control' })
+      form_wrapper.collection_select(bt_attr, opts, :id, :to_s, { prompt: '', include_blank: include_blank })
 
     elsif type == :checkbox_multi
       opts = record.send("#{attr}_select_options")
@@ -258,29 +279,8 @@ module CrudableHelper
       # Adding _ids to the name for checkbox select. Permitted params must have attr_ids allowed
       ids_name = "#{attr.to_s.singularize}_ids"
       opts = record.select_options_for_has_many(attr.to_s.sub(/_ids$/, ''))
-      # don't think we need to handle settings[:include_blank] because checkboxes that should be implied
       field_name = "#{form.object_name}[#{ids_name}][]"
       render partial: 'crudable/check_box_select', locals: {options: opts, field_name: field_name, selected: record.send(ids_name)}
-      #kennel[handler_ids][]"
-      # concat(
-      # hidden_field_tag(field_name, nil)
-      # content_tag(:ul, class: 'list-unstyled') do
-      #   opts.collect do |o|
-      #     concat content_tag(:li) do
-      #       o.to_s
-      #     end
-      #     #<label><%= check_box_tag("kennel[handler_ids][]", id, id.in?(@kennel.handlers.collect(&:id))) %> <%= handler.name %></label>
-      #     # concat content_tag(:li) do
-      #     #   concat content_tag(:label) do
-      #     #     concat o.to_s,
-      #     #            check_box_tag(field_name, o.id )
-      #     #   end
-      #     # end
-      #   end
-      # end
-      # )
-      #form.collection_check_boxes(attr, opts, :id, :to_s, class: 'form-control')
-
     else
       raise "unknown form input type for '#{type}'"
     end
@@ -564,6 +564,11 @@ module CrudableHelper
 
   def can_search?(record)
     !controller.model_class.search_attributes.empty?
+  end
+  
+  def can_filter?(record)
+    controller.model_class.respond_to?(:filter_attributes) && 
+    !controller.model_class.filter_attributes.empty?
   end
   
   def input_note_for(record, attr)

@@ -1,0 +1,109 @@
+<script type="text/javascript">
+  function updateBulkSelection(el){
+    // Find the closest container with class 'crud-listing'
+    var container = el.closest('.crud-listing');
+    if (!container) return;
+    
+    // Get all bulk checkboxes and collect checked values
+    var checkboxes = container.querySelectorAll('.bulk-checkbox');
+    var ids = Array.from(checkboxes)
+      .filter(function(checkbox) { return checkbox.checked; })
+      .map(function(checkbox) { return checkbox.value; });
+    
+    // Update the hidden input with comma-separated IDs
+    var input = container.querySelector('.bulk-ids-input');
+    if (input) {
+      input.value = ids.join(',');
+    }
+
+    // Show/hide bulk edit form and update count
+    var formContainer = container.querySelector('.bulk-edit-form-container');
+    if (formContainer) {
+      if (ids.length > 0) {
+        // Show form - works for both Bootstrap and Tailwind
+        if (formContainer.style.display !== undefined) {
+          formContainer.style.display = 'block';  // Bootstrap style method
+        }
+        if (formContainer.classList.contains('hidden')) {
+          formContainer.classList.remove('hidden');  // Tailwind class method
+        }
+        
+        var heading = formContainer.querySelector('h3');
+        if (heading) {
+          heading.textContent = "Bulk Update (" + ids.length + ")";
+        }
+      } else {
+        // Hide form - works for both Bootstrap and Tailwind
+        if (formContainer.style.display !== undefined) {
+          formContainer.style.display = 'none';  // Bootstrap style method
+        }
+        if (!formContainer.classList.contains('hidden')) {
+          formContainer.classList.add('hidden');  // Tailwind class method
+        }
+      }
+    }
+  }
+
+  function bulkSelectAll(el) {
+    var container = el.closest('.crud-listing');
+    if (!container) return;
+    
+    var checkboxes = container.querySelectorAll('.bulk-checkbox');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = true;
+    });
+    
+    updateBulkSelection(el);
+  }
+
+  function bulkSelectNone(el) {
+    var container = el.closest('.crud-listing');
+    if (!container) return;
+    
+    var checkboxes = container.querySelectorAll('.bulk-checkbox');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = false;
+    });
+    
+    updateBulkSelection(el);
+  }
+
+  function bulkSelectInvert(el) {
+    var container = el.closest('.crud-listing');
+    if (!container) return;
+    
+    var checkboxes = container.querySelectorAll('.bulk-checkbox');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = !checkbox.checked;
+    });
+    
+    updateBulkSelection(el);
+  }
+
+  if(!window.didBulkReady) {
+    window.didBulkReady = true; // run just once
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeBulkSelection);
+    } else {
+      initializeBulkSelection();
+    }
+    
+    function initializeBulkSelection() {
+      // Add click handlers for all bulk checkboxes
+      var checkboxes = document.querySelectorAll('.bulk-checkbox');
+      checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('click', function(e) {
+          updateBulkSelection(e.target);
+        });
+      });
+      
+      // Initialize bulk selection state for any pre-checked boxes
+      var forms = document.querySelectorAll('.bulk-edit-form-container form');
+      forms.forEach(function(form) {
+        updateBulkSelection(form);
+      });
+    }
+  }
+</script>

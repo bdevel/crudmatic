@@ -1,11 +1,3 @@
-
-add a custom method book_count to show a
-bulk editable attributes
-
-Mention that the search_attributes uses an sql LIKE and is not optimized for
-massive datasets. Tye can override the `apply_search_params(scope)` method if needed.
-
-
 # Crudable Rails Engine
 
 A powerful Rails engine that automatically builds listing pages, forms, and show
@@ -151,6 +143,182 @@ class Article < ApplicationRecord
   # Default sorting
   crudable :index_order, { created_at: :desc }
   crudable :index_order, { title: :asc, created_at: :desc }
+end
+```
+
+### Bulk Editable Attributes
+
+Configure which attributes can be bulk-edited from the index page:
+
+```ruby
+class Book < ApplicationRecord
+  include CrudableRecord
+  
+  # Allow bulk editing of status and category only
+  crudable :bulk_editable_attributes, [:status, :category_id]
+  
+  # If not specified, falls back to edit_attributes
+end
+```
+
+Users can select multiple records and update these fields simultaneously. The bulk edit form appears when records are selected.
+
+### Filter Attributes
+
+Add dropdown filters to the navigation bar:
+
+```ruby
+class Book < ApplicationRecord
+  include CrudableRecord
+  
+  # Add filter dropdowns for these attributes
+  crudable :filter_attributes, [:status, :category_id]
+end
+```
+
+Filter dropdowns automatically populate with distinct values from the database or use configured select options.
+
+### Custom Show Attributes
+
+Add computed or custom methods to your model and include them in show attributes:
+
+```ruby
+class Book < ApplicationRecord
+  include CrudableRecord
+  
+  crudable :show_attributes, [:title, :author, :total_reviews, :reading_level]
+  
+  # Custom computed attribute
+  def total_reviews
+    reviews.count
+  end
+  
+  # Custom method with business logic
+  def reading_level
+    return "Beginner" if pages < 100
+    return "Intermediate" if pages < 300
+    "Advanced"
+  end
+end
+```
+
+Any method defined on your model can be displayed in views by adding it to the appropriate attribute list.
+
+### Search Performance Note
+
+Search functionality uses SQL `LIKE %term%` queries which work well for small to medium datasets but may not be optimal for massive datasets:
+
+```ruby
+# Default search implementation
+crudable :search_attributes, [:title, :description]  # Uses LIKE %term%
+```
+
+For better performance on large datasets, override the search method in your controller:
+
+```ruby
+class BooksController < ApplicationController
+  include CrudableControllerMethods
+  
+  crudable_controller_for Book
+  
+  private
+  
+  # Override for better search performance
+  def apply_search_params(scope)
+    if params[:q].present?
+      # Use full-text search, Elasticsearch, etc.
+      scope = scope.where("title_vector @@ plainto_tsquery(?)", params[:q])
+    end
+    scope
+  end
+end
+```
+
+## CSS Framework Customization
+
+Crudable uses a flexible form wrapper system that supports different CSS frameworks.
+
+### Bootstrap 5 (Default)
+
+Forms use Bootstrap 5 classes by default (`form-control`, etc.). No configuration needed.
+
+### Framework Configuration
+
+Set the CSS framework globally in your Rails application:
+
+```ruby
+# config/application.rb or config/environments/development.rb
+Rails.application.configure do
+  # Choose CSS framework: :bootstrap (default) or :tailwind
+  config.crudable.css_framework = :bootstrap
+end
+```
+
+Available options:
+- `:bootstrap` (default) - Uses Bootstrap 5 classes
+- `:tailwind` - Uses TailwindForm (no classes by default - customize in host app)
+
+### Tailwind CSS
+
+To use Tailwind CSS, create a custom form wrapper:
+
+```ruby
+# app/helpers/crudable/bootstrap_form.rb
+module Crudable
+  class BootstrapForm < Crudable::BootstrapForm
+    def self.form_control_class
+      'block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'
+    end
+    
+    def self.radio_group_class
+      'space-y-3'
+    end
+    
+    def self.radio_item_class
+      'flex items-center'
+    end
+    
+    def self.form_control_radio_class
+      'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500'
+    end
+  end
+end
+```
+
+Or use the TailwindForm as a starting point:
+
+```ruby
+# app/helpers/crudable/extendable_helper.rb
+module Crudable
+  module ExtendableHelper
+    include CrudableHelper
+    
+    def crud_edit_attr(form, attr, settings = nil)
+      # Use TailwindForm instead of BootstrapForm
+      settings = {} if settings.nil?
+      record = form.object
+      # ... copy implementation but use Crudable::TailwindForm.new(form, self)
+    end
+  end
+end
+```
+
+### Other CSS Frameworks
+
+For Bulma, Foundation, or custom CSS frameworks, override the class methods:
+
+```ruby
+# app/helpers/crudable/bootstrap_form.rb
+module Crudable
+  class BootstrapForm < Crudable::BootstrapForm
+    def self.form_control_class
+      'input'  # Bulma class
+    end
+    
+    def self.radio_group_class
+      'control'  # Bulma class
+    end
+  end
 end
 ```
 

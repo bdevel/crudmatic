@@ -16,8 +16,8 @@
   
 <% if records.length > 0 %>
   <div class="crud-listing">
-    <div class="table-responsive">
-      <table class="table table-striped table-bordered table-hover table-condensed">
+    <div class="<%= css_classes.table_responsive_class %>">
+      <table class="<%= css_classes.table_class %>">
         <thead>
           <tr>
             <% if show_actions %>
@@ -45,37 +45,61 @@
           <% records.each do |item| %>
             <tr>
               <% if show_actions %>
-                <td class="text-center nowrap">
-                  <div class="btn-group nowrap">
-                    <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                <td class="<%= css_classes.text_center_class %> <%= css_classes.nowrap_class %>">
+                  <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                    <div class="<%= css_classes.d_flex_class %> align-items-center <%= css_classes.gap_2_class %>">
                       <label>
                         <%= check_box_tag("bulk[]", item.id, false, id: "bulk-checkbox-#{item.id}", class:"bulk-checkbox") %>
-                        &nbsp;
                       </label>
-                    <% end %>
-
-                    <% if action_ok?(local_assigns[:actions], :show) %>
-                      <%= link_to view_path(item), class: 'btn btn-xs btn-outline-success', role: 'button' do %>
-                        <i class="bi bi-eye"></i>
-                        Show
+                      <div class="<%= css_classes.btn_group_sm_class %>" role="group">
+                        <% if action_ok?(local_assigns[:actions], :show) %>
+                          <%= link_to view_path(item), class: css_classes.btn_outline_success_class, role: 'button' do %>
+                            <i class="bi bi-eye"></i>
+                            Show
+                          <% end %>
+                        <% end %>
+                        <% if action_ok?(local_assigns[:actions], :update) %>
+                          <%= link_to new_or_edit_path(item), class: css_classes.btn_outline_primary_class, role: 'button' do %>
+                            <i class="bi bi-pencil"></i>
+                            Edit
+                          <% end %>
+                        <% end %>
+                        <% if action_ok?(local_assigns[:actions], :destroy) %>
+                          <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button', method: :delete do %>
+                            <i class="bi bi-trash"></i>
+                            Delete
+                          <% end %>
+                        <% end %>
+                        <% if block_given? %>
+                          <%= yield item %>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% else %>
+                    <div class="<%= css_classes.btn_group_sm_class %>" role="group">
+                      <% if action_ok?(local_assigns[:actions], :show) %>
+                        <%= link_to view_path(item), class: css_classes.btn_outline_success_class, role: 'button' do %>
+                          <i class="bi bi-eye"></i>
+                          Show
+                        <% end %>
                       <% end %>
-                    <% end %>
-                    <% if action_ok?(local_assigns[:actions], :update) %>
-                      <%= link_to new_or_edit_path(item), class: 'btn btn-xs btn-outline-primary', role: 'button' do %>
-                        <i class="bi bi-pencil"></i>
-                        Edit
+                      <% if action_ok?(local_assigns[:actions], :update) %>
+                        <%= link_to new_or_edit_path(item), class: css_classes.btn_outline_primary_class, role: 'button' do %>
+                          <i class="bi bi-pencil"></i>
+                          Edit
+                        <% end %>
                       <% end %>
-                    <% end %>
-                    <% if action_ok?(local_assigns[:actions], :destroy) %>
-                      <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: 'btn btn-xs btn-outline-danger', role: 'button', method: :delete do %>
-                        <i class="bi bi-trash"></i>
-                        Delete
+                      <% if action_ok?(local_assigns[:actions], :destroy) %>
+                        <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button', method: :delete do %>
+                          <i class="bi bi-trash"></i>
+                          Delete
+                        <% end %>
                       <% end %>
-                    <% end %>
-                    <% if block_given? %>
-                      <%= yield item %>
-                    <% end %>
-                  </div>
+                      <% if block_given? %>
+                        <%= yield item %>
+                      <% end %>
+                    </div>
+                  <% end %>
                 </td>
               <% end %>
               <% attributes.each.with_index do |f,i| %>
@@ -100,121 +124,26 @@
           <% edit_attributes.each do |attr| %>
             <%# makes sure the after_initialize hook defaults does not set these to non-nil which is needed to know whether to update %>
             <% form_record.send("#{attr}=", nil) %>
-            <div class="row mb-3">
-              <label class="col-sm-2 col-form-label text-end fw-bold"><%= model_attr_label(form_record, attr) %></label>
-              <div class="col-sm-10">
+            <div class="<%= css_classes.form_group_class %>">
+              <label class="<%= css_classes.form_label_class %>"><%= model_attr_label(form_record, attr) %></label>
+              <div class="<%= css_classes.form_control_wrapper_class %>">
                 <%= crud_edit_attr(f, attr) %>
                 <% note = input_note_for(form_record, attr) %>
                 <% if note || form_record.respond_to?(attr.to_s + "_input_notes") %>
-                  <div class="form-text"><%= note || form_record.send(attr.to_s + "_input_notes") %></div>
+                  <div class="<%= css_classes.form_text_class %>"><%= note || form_record.send(attr.to_s + "_input_notes") %></div>
                 <% end %>
               </div>
             </div>
           <% end %>
 
-          <div class="row mb-3">
-            <div class="col-sm-10 offset-sm-2">
-              <%= f.submit 'Update', class: 'btn btn-success' %>
+          <div class="<%= css_classes.form_group_class %>">
+            <div class="<%= css_classes.form_control_wrapper_class %> <%= css_classes.offset_sm_2_class %>">
+              <%= f.submit 'Update', class: css_classes.btn_success_class %>
             </div>
           </div>
         <% end %>
 
-        <script type="text/javascript">
-          function updateBulkSelection(el){
-            // Find the closest container with class 'crud-listing'
-            var container = el.closest('.crud-listing');
-            if (!container) return;
-            
-            // Get all bulk checkboxes and collect checked values
-            var checkboxes = container.querySelectorAll('.bulk-checkbox');
-            var ids = Array.from(checkboxes)
-              .filter(function(checkbox) { return checkbox.checked; })
-              .map(function(checkbox) { return checkbox.value; });
-            
-            // Update the hidden input with comma-separated IDs
-            var input = container.querySelector('.bulk-ids-input');
-            if (input) {
-              input.value = ids.join(',');
-            }
-
-            // Show/hide bulk edit form and update count
-            var formContainer = container.querySelector('.bulk-edit-form-container');
-            if (formContainer) {
-              if (ids.length > 0) {
-                formContainer.style.display = 'block';
-                var heading = formContainer.querySelector('h3');
-                if (heading) {
-                  heading.textContent = "Bulk Update (" + ids.length + ")";
-                }
-              } else {
-                formContainer.style.display = 'none';
-              }
-            }
-          }
-
-          function bulkSelectAll(el) {
-            var container = el.closest('.crud-listing');
-            if (!container) return;
-            
-            var checkboxes = container.querySelectorAll('.bulk-checkbox');
-            checkboxes.forEach(function(checkbox) {
-              checkbox.checked = true;
-            });
-            
-            updateBulkSelection(el);
-          }
-
-          function bulkSelectNone(el) {
-            var container = el.closest('.crud-listing');
-            if (!container) return;
-            
-            var checkboxes = container.querySelectorAll('.bulk-checkbox');
-            checkboxes.forEach(function(checkbox) {
-              checkbox.checked = false;
-            });
-            
-            updateBulkSelection(el);
-          }
-
-          function bulkSelectInvert(el) {
-            var container = el.closest('.crud-listing');
-            if (!container) return;
-            
-            var checkboxes = container.querySelectorAll('.bulk-checkbox');
-            checkboxes.forEach(function(checkbox) {
-              checkbox.checked = !checkbox.checked;
-            });
-            
-            updateBulkSelection(el);
-          }
-
-          if(!window.didBulkReady) {
-            window.didBulkReady = true; // run just once
-            
-            // Wait for DOM to be ready
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', initializeBulkSelection);
-            } else {
-              initializeBulkSelection();
-            }
-            
-            function initializeBulkSelection() {
-              // Add click handlers for all bulk checkboxes
-              var checkboxes = document.querySelectorAll('.bulk-checkbox');
-              checkboxes.forEach(function(checkbox) {
-                checkbox.addEventListener('click', function(e) {
-                  updateBulkSelection(e.target);
-                });
-              });
-              
-              // Initialize bulk selection state for any pre-checked boxes
-              var forms = document.querySelectorAll('.bulk-edit-form-container form');
-              forms.forEach(function(form) {
-                updateBulkSelection(form);
-              });
-            }
-          }
-        </script>
+        <%= render 'crudable/shared/bulk_edit_javascript' %>
       </div>
     <% end %>
   </div>

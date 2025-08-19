@@ -33,11 +33,11 @@
     }
   </script>
 
-  <div class="d-flex gap-2">
+  <div class="<%= css_classes.d_flex_class %> <%= css_classes.gap_2_class %>">
     <% model_class.filter_attributes.each do |attr| %>
-      <div class="input-group input-group-sm">
-        <span class="input-group-text"><%= model_attr_label(model_class.new, attr) %></span>
-        <select class="form-select form-select-sm" onchange="updateQueryParamsFromDropdown(this)">
+      <div class="<%= css_classes.input_group_sm_class %>">
+        <span class="<%= css_classes.input_group_text_class %>"><%= model_attr_label(model_class.new, attr) %></span>
+        <select class="<%= css_classes.form_select_sm_class %>" onchange="updateQueryParamsFromDropdown(this)">
           <option value="?<%= attr %>=">All</option>
           <% 
             # Get filter options for this attribute

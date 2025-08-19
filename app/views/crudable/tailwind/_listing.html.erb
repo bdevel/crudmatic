@@ -1,0 +1,124 @@
+<% if local_assigns[:attributes] %>
+  <% attributes = local_assigns[:attributes] %>
+<% else %>
+  <% attributes = records.first.class.index_attributes rescue [] %>
+<% end %>
+
+<% show_actions = true %>
+<% show_actions = true if block_given? %>
+<% show_actions = false if local_assigns[:actions] == false %>
+
+<% if records.respond_to?(:arel) && records.arel.limit.nil? %>
+  <% records = records.limit(500) %>
+<% end %>
+  
+<% if records.length > 0 %>
+  <div class="crud-listing">
+    <div class="<%= css_classes.table_responsive_class %>">
+      <table class="<%= css_classes.table_class %>">
+        <thead class="bg-gray-50">
+          <tr>
+            <% if show_actions %>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+                <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                  <div class="float-right font-normal">
+                    <a href="#" onclick="bulkSelectAll(this); return false;" class="text-blue-600 hover:text-blue-900" title="Bulk select all">All</a>
+                    /
+                    <a href="#" onclick="bulkSelectNone(this); return false;" class="text-blue-600 hover:text-blue-900" title="Clear bulk selection">None</a>
+                    /
+                    <a href="#" onclick="bulkSelectInvert(this); return false;" class="text-blue-600 hover:text-blue-900" title="Invert bulk selection">Invert</a>
+                  </div>
+                <% end %>
+              </th>
+            <% end %>
+
+            <% attributes.each do |f| %>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= model_attr_label(records.first, f) %></th>
+            <% end %>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% records.each do |item| %>
+            <tr class="hover:bg-gray-50">
+              <% if show_actions %>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                  <div class="flex items-center space-x-2">
+                    <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                      <label>
+                        <%= check_box_tag("bulk[]", item.id, false, id: "bulk-checkbox-#{item.id}", class:"bulk-checkbox rounded") %>
+                      </label>
+                    <% end %>
+
+                    <% if action_ok?(local_assigns[:actions], :show) %>
+                      <%= link_to view_path(item), class: "inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:bg-green-200 transition ease-in-out duration-150" do %>
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path></svg>
+                        Show
+                      <% end %>
+                    <% end %>
+                    <% if action_ok?(local_assigns[:actions], :update) %>
+                      <%= link_to new_or_edit_path(item), class: "inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:bg-blue-200 transition ease-in-out duration-150" do %>
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
+                        Edit
+                      <% end %>
+                    <% end %>
+                    <% if action_ok?(local_assigns[:actions], :destroy) %>
+                      <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: "inline-flex items-center px-2 py-1 border border-transparent text-xs leading-4 font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:bg-red-200 transition ease-in-out duration-150", method: :delete do %>
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                        Delete
+                      <% end %>
+                    <% end %>
+                    <% if block_given? %>
+                      <%= yield item %>
+                    <% end %>
+                  </div>
+                </td>
+              <% end %>
+              <% attributes.each.with_index do |f,i| %>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <%= formatted_value(item, f, :listing) %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+      <div class="bulk-edit-form-container hidden">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-4">
+          <h3 class="text-lg font-semibold text-blue-900 mb-4">Bulk Update</h3>
+          <% edit_attributes = local_assigns[:bulk_edit_attributes] %>
+          <% edit_attributes = edit_attributes || (records.first.class.bulk_editable_attributes rescue nil) %>
+          <% edit_attributes = edit_attributes || (records.first.class.editable_attributes rescue nil) %>
+          <% form_record = records.first.class.new() %>
+          <%= form_for(form_record, :url => bulk_path(form_record.class), :method => "patch", html: { role: "form" }) do |f| %>
+            <input class="bulk-ids-input" type="hidden" name="id" value="">
+            <% edit_attributes.each do |attr| %>
+              <% form_record.send("#{attr}=", nil) %>
+              <div class="<%= css_classes.form_group_class %>">
+                <label class="<%= css_classes.form_label_class %>"><%= model_attr_label(form_record, attr) %></label>
+                <div class="<%= css_classes.form_control_wrapper_class %>">
+                  <%= crud_edit_attr(f, attr) %>
+                  <% note = input_note_for(form_record, attr) %>
+                  <% if note || form_record.respond_to?(attr.to_s + "_input_notes") %>
+                    <div class="<%= css_classes.form_text_class %>"><%= note || form_record.send(attr.to_s + "_input_notes") %></div>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+
+            <div class="<%= css_classes.form_group_class %>">
+              <div class="<%= css_classes.form_control_wrapper_class %> <%= css_classes.offset_sm_2_class %>">
+                <%= f.submit 'Update', class: css_classes.btn_success_class %>
+              </div>
+            </div>
+          <% end %>
+
+          <%= render 'crudable/shared/bulk_edit_javascript' %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>

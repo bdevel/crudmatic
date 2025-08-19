@@ -70,9 +70,15 @@
       <% rescue ActionView::MissingTemplate => e %>
       <% end %>
 
-      <% if can_search?(record) %>
-        <%= render partial: 'crudable/search' %>
-      <% end %>
+      <div class="<%= css_classes.d_flex_class %> <%= css_classes.gap_2_class %>">
+        <% if can_search?(record) %>
+          <%= render partial: 'crudable/search' %>
+        <% end %>
+        
+        <% if can_filter?(record) %>
+          <%= render 'crudable/nav_filter_dropdowns', model_class: controller.model_class %>
+        <% end %>
+      </div>
     </div>
   </div>
 </nav>

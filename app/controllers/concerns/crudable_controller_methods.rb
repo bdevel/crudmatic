@@ -212,13 +212,20 @@ module CrudableControllerMethods
   protected
 
   # Try host app's controller's views first.
-  # If no override exists, then fall back to engine default template for the action
+  # If no override exists, then fall back to engine template (framework-specific or default)
   def render_with_engine_fallback(action = action_name)
+    framework = Rails.application.config.crudable&.css_framework || :bootstrap
+    
     # 1. First, try host app view in its usual location, IE, app/view/books/index.html.erb
     if lookup_context.exists?("#{controller_path}/#{action}", [], true)
       render "#{controller_path}/#{action}"
+    
+    # 2. Try framework-specific engine template, IE, app/view/crudable/tailwind/index.html.erb
+    elsif framework != :bootstrap && lookup_context.exists?("crudable/#{framework}/#{action}", [], true)
+      render template: "crudable/#{framework}/#{action}"
+    
+    # 3. Fall back to default engine template, IE, app/view/crudable/index.html.erb
     else
-      # 2. Otherwise, fall back to engine flat template path, IE, app/view/crudable/index.html.erb
       render template: "crudable/#{action}"
     end
   end

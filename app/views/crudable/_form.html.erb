@@ -1,6 +1,6 @@
 <%= form_for record do |f| %>
   <% if record.errors.any? %>
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="<%= css_classes.alert_danger_class %>" role="alert">
       <h4><%= pluralize(record.errors.count, "error") %> prohibited this record from being saved:</h4>
 
       <ul>
@@ -13,24 +13,24 @@
   <% end %>
 
   <% record.class.editable_attributes.each do |attr| %>
-    <div class="row mb-3">
-      <label class="col-sm-2 col-form-label text-end fw-bold"><%= model_attr_label(record, attr) %></label>
-      <div class="col-sm-10">
+    <div class="<%= css_classes.form_group_class %>">
+      <label class="<%= css_classes.form_label_class %>"><%= model_attr_label(record, attr) %></label>
+      <div class="<%= css_classes.form_control_wrapper_class %>">
         <%= crud_edit_attr f, attr %>
         <% note = input_note_for(record, attr) %>
         <% if note || record.respond_to?(attr.to_s + "_input_notes") %>
-          <div class="form-text"><%= note || record.send(attr.to_s + "_input_notes") %></div>
+          <div class="<%= css_classes.form_text_class %>"><%= note || record.send(attr.to_s + "_input_notes") %></div>
         <% end %>
       </div>
     </div>
   <% end %>
           
-  <div class="row mb-3">
-    <div class="col-sm-10 offset-sm-2">
+  <div class="<%= css_classes.form_group_class %>">
+    <div class="<%= css_classes.form_control_wrapper_class %> <%= css_classes.offset_sm_2_class %>">
       <% if record.new_record? %>
-        <%= f.submit 'Create', class: 'btn btn-primary' %>
+        <%= f.submit 'Create', class: css_classes.btn_primary_class %>
       <% else %>
-        <%= f.submit 'Save', class: 'btn btn-primary' %>
+        <%= f.submit 'Save', class: css_classes.btn_primary_class %>
       <% end %>
     </div>
   </div>
