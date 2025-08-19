@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="docs/crudmatic-logo-transparent.png" alt="Crudmatic Logo" />
+</div>
+
 # Crudmatic Rails Engine
 
 A powerful Rails engine that automatically builds listing pages, forms, and show
