@@ -25,11 +25,11 @@
                 Actions
                 <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
                   <div style="float: right; font-weight: normal;">
-                    <a href="#" onclick="$(this).closest('table').find('.bulk-checkbox').prop('checked', true); updateBulkSelection(this); return false;" title="Bulk select all">All</a>
+                    <a href="#" onclick="bulkSelectAll(this); return false;" title="Bulk select all">All</a>
                     /
-                    <a href="#" onclick="$(this).closest('table').find('.bulk-checkbox').prop('checked', false); updateBulkSelection(this); return false;" title="Clear bulk selection">None</a>
+                    <a href="#" onclick="bulkSelectNone(this); return false;" title="Clear bulk selection">None</a>
                     /
-                    <a href="#" onclick="$(this).closest('table').find('.bulk-checkbox').click(); updateBulkSelection(this); return false;" title="Invert bulk selection">Invert</a>
+                    <a href="#" onclick="bulkSelectInvert(this); return false;" title="Invert bulk selection">Invert</a>
                   </div>
                 <% end %>
               </th>
@@ -95,27 +95,25 @@
         <% edit_attributes = edit_attributes || (records.first.class.bulk_editable_attributes rescue nil) %>
         <% edit_attributes = edit_attributes || (records.first.class.editable_attributes rescue nil) %>
         <% form_record = records.first.class.new() %>
-        <%= form_for(form_record, :url => bulk_path(form_record.class), :method => "patch", html: { class: "form-horizontal", role: "form" }) do |f| %>
+        <%= form_for(form_record, :url => bulk_path(form_record.class), :method => "patch", html: { role: "form" }) do |f| %>
           <input class="bulk-ids-input" type="hidden" name="id" value="">
           <% edit_attributes.each do |attr| %>
-            <!-- makes sure the after_initialize hook defaults does not set these to non-nil which is needed to know whether to update -->
+            <%# makes sure the after_initialize hook defaults does not set these to non-nil which is needed to know whether to update %>
             <% form_record.send("#{attr}=", nil) %>
-            <div class="form-group">
-              <%= f.label model_attr_label(form_record, attr), class: 'col-sm-2 control-label' %>
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label text-end fw-bold"><%= model_attr_label(form_record, attr) %></label>
               <div class="col-sm-10">
                 <%= crud_edit_attr(f, attr) %>
-                <% if form_record.respond_to?(attr.to_s + "_input_notes") %>
-                  <div class="help-block"><%= form_record.send(attr.to_s + "_input_notes") %></div>
+                <% note = input_note_for(form_record, attr) %>
+                <% if note || form_record.respond_to?(attr.to_s + "_input_notes") %>
+                  <div class="form-text"><%= note || form_record.send(attr.to_s + "_input_notes") %></div>
                 <% end %>
               </div>
             </div>
           <% end %>
 
-          <div class="form-group">
-            <div class="col-sm-2">
-              &nbsp;
-            </div>
-            <div class="col-sm-10">
+          <div class="row mb-3">
+            <div class="col-sm-10 offset-sm-2">
               <%= f.submit 'Update', class: 'btn btn-success' %>
             </div>
           </div>
@@ -123,36 +121,98 @@
 
         <script type="text/javascript">
           function updateBulkSelection(el){
-            var container = $(el).closest('.crud-listing');
-            var ids = container.find('.bulk-checkbox').toArray().map(function(e){
-              if(e.checked){
-                return e.value;
-              } else{
-                return null;
-              }
-            }).filter(function(v){return v != null;})
+            // Find the closest container with class 'crud-listing'
+            var container = el.closest('.crud-listing');
+            if (!container) return;
             
-            var input = container.find('.bulk-ids-input')[0];
-            input.value = ids.join(',');
-
-            if (ids.length > 0) {
-              container.find(".bulk-edit-form-container").show();
-              container.find(".bulk-edit-form-container h3").text("Bulk Update (" + ids.length + ")");
-
-            } else{
-              container.find(".bulk-edit-form-container").hide();
+            // Get all bulk checkboxes and collect checked values
+            var checkboxes = container.querySelectorAll('.bulk-checkbox');
+            var ids = Array.from(checkboxes)
+              .filter(function(checkbox) { return checkbox.checked; })
+              .map(function(checkbox) { return checkbox.value; });
+            
+            // Update the hidden input with comma-separated IDs
+            var input = container.querySelector('.bulk-ids-input');
+            if (input) {
+              input.value = ids.join(',');
             }
+
+            // Show/hide bulk edit form and update count
+            var formContainer = container.querySelector('.bulk-edit-form-container');
+            if (formContainer) {
+              if (ids.length > 0) {
+                formContainer.style.display = 'block';
+                var heading = formContainer.querySelector('h3');
+                if (heading) {
+                  heading.textContent = "Bulk Update (" + ids.length + ")";
+                }
+              } else {
+                formContainer.style.display = 'none';
+              }
+            }
+          }
+
+          function bulkSelectAll(el) {
+            var container = el.closest('.crud-listing');
+            if (!container) return;
+            
+            var checkboxes = container.querySelectorAll('.bulk-checkbox');
+            checkboxes.forEach(function(checkbox) {
+              checkbox.checked = true;
+            });
+            
+            updateBulkSelection(el);
+          }
+
+          function bulkSelectNone(el) {
+            var container = el.closest('.crud-listing');
+            if (!container) return;
+            
+            var checkboxes = container.querySelectorAll('.bulk-checkbox');
+            checkboxes.forEach(function(checkbox) {
+              checkbox.checked = false;
+            });
+            
+            updateBulkSelection(el);
+          }
+
+          function bulkSelectInvert(el) {
+            var container = el.closest('.crud-listing');
+            if (!container) return;
+            
+            var checkboxes = container.querySelectorAll('.bulk-checkbox');
+            checkboxes.forEach(function(checkbox) {
+              checkbox.checked = !checkbox.checked;
+            });
+            
+            updateBulkSelection(el);
           }
 
           if(!window.didBulkReady) {
             window.didBulkReady = true; // run just once
-            $(document).ready(function(){
-              // add the click handlers for all checkboxes
-              $('.bulk-checkbox').click(function(e){updateBulkSelection(e.target)});
+            
+            // Wait for DOM to be ready
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', initializeBulkSelection);
+            } else {
+              initializeBulkSelection();
+            }
+            
+            function initializeBulkSelection() {
+              // Add click handlers for all bulk checkboxes
+              var checkboxes = document.querySelectorAll('.bulk-checkbox');
+              checkboxes.forEach(function(checkbox) {
+                checkbox.addEventListener('click', function(e) {
+                  updateBulkSelection(e.target);
+                });
+              });
               
-              // if you push refresh, checkboxes will still be check, so run the update when ready
-              $('.bulk-edit-form-container form').each(function(i, el){updateBulkSelection(el)})
-            });
+              // Initialize bulk selection state for any pre-checked boxes
+              var forms = document.querySelectorAll('.bulk-edit-form-container form');
+              forms.forEach(function(form) {
+                updateBulkSelection(form);
+              });
+            }
           }
         </script>
       </div>

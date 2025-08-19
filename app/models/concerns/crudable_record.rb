@@ -11,18 +11,18 @@ module CrudableRecord
   # Instance methods (similar to existing crud_attributes.rb)
   
   # for papertrail gem
-  def version_changes
-    if self.respond_to?(:versions)
-      self.versions.sort_by(&:created_at).reverse.map do |v|
-        {event: v.event,
-         changes: (v.object_changes || []).map{|c| c.to_a.flatten}.map{|cc| {attribute: cc[0], old_value: cc[1], new_value: cc[2]}},
-         info:  {created_at: v.created_at, who: v.whodunnit}
-        }
-      end
-    else
-      []
-    end
-  end
+  # def version_changes
+  #   if self.respond_to?(:versions)
+  #     self.versions.sort_by(&:created_at).reverse.map do |v|
+  #       {event: v.event,
+  #        changes: (v.object_changes || []).map{|c| c.to_a.flatten}.map{|cc| {attribute: cc[0], old_value: cc[1], new_value: cc[2]}},
+  #        info:  {created_at: v.created_at, who: v.whodunnit}
+  #       }
+  #     end
+  #   else
+  #     []
+  #   end
+  # end
   
   # for dropdown. Defaults to all records. Override with XXX_selection_options
   def select_options_for_belongs_to(name)
@@ -120,12 +120,20 @@ module CrudableRecord
       crudable_config.get_attributes(:edit_attributes)
     end
 
+    def bulk_editable_attributes
+      crudable_config.get_attributes(:bulk_editable_attributes)
+    end
+
     def api_attributes
       crudable_config.get_attributes(:api_attributes)
     end
 
     def search_attributes
       crudable_config.get_attributes(:search_attributes)
+    end
+
+    def filter_attributes
+      crudable_config.get_attributes(:filter_attributes)
     end
 
     def permitted_attributes

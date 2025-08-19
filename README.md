@@ -1,3 +1,8 @@
+
+add a custom method book_count to show a
+bulk editable attributes
+
+
 # Crudable Rails Engine
 
 A powerful Rails engine that automatically builds listing pages, forms, and show
@@ -318,7 +323,33 @@ app/views/crudable/
 ├── _data_table.html.erb            # Alternative table layout
 ├── _hashmap_show.html.erb          # Display for Hash objects
 ├── _check_box_select.html.erb      # Multi-select checkbox component
-└── _nav_filter_dropdowns.html.erb  # Navigation filter dropdowns
+└── _nav_filter_dropdowns.html.erb  # Navigation filter dropdowns (ex, filter by status)
+```
+
+### Extending Helper Methods
+
+Crudable uses an extendable helper pattern. To add your own helper methods or include other helpers, create this file in your app:
+
+```ruby
+# app/helpers/crudable/extendable_helper.rb
+module Crudable
+  module ExtendableHelper
+    include CrudableHelper  # Required for core functionality
+    include YourOtherHelpers  # Optional: include other helpers
+    
+    # Add your custom helper methods
+    def custom_status_badge(status)
+      case status
+      when 'active'
+        content_tag :span, status.titleize, class: 'badge bg-success'
+      when 'inactive'
+        content_tag :span, status.titleize, class: 'badge bg-danger'
+      else
+        content_tag :span, status.titleize, class: 'badge bg-secondary'
+      end
+    end
+  end
+end
 ```
 
 ### Custom Navigation Links
@@ -342,7 +373,7 @@ Add extra navigation items by creating partials:
 </div>
 ```
 
-## Styling
+## Styling and Javascript
 
 Crudable uses Bootstrap 5 for styling. Include Bootstrap CSS and JS in your layout:
 
@@ -351,9 +382,11 @@ Crudable uses Bootstrap 5 for styling. Include Bootstrap CSS and JS in your layo
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/@rails/ujs@7.0.0/lib/assets/compiled/rails-ujs.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>Rails.start();</script>
+
+<!-- May need to add this if your application template
+     if the delete buttons aren't showing a confirmation alert. -->
+<script src="https://cdn.jsdelivr.net/npm/@rails/ujs@7.0.0/lib/assets/compiled/rails-ujs.js"></script>
 ```
 
 ## Advanced Examples

@@ -11,7 +11,7 @@ module Crudable
       case type
 
       # store Record level configs on  @configs[type]
-      when :index_attributes, :show_attributes, :edit_attributes, :search_attributes, :api_attributes, :pagination_limit, :index_order
+      when :index_attributes, :show_attributes, :edit_attributes, :bulk_editable_attributes, :search_attributes, :api_attributes, :filter_attributes, :pagination_limit, :index_order
         @configs[type] = args.first
 
       # Store attribute specific configs under  @configs[type][attr_name.to_sym]
@@ -31,7 +31,11 @@ module Crudable
         get_default_show_attributes
       when :edit_attributes
         get_default_editable_attributes
+      when :bulk_editable_attributes
+        get_default_editable_attributes
       when :search_attributes
+        []
+      when :filter_attributes
         []
       when :api_attributes
         get_default_show_attributes

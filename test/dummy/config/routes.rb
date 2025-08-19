@@ -3,19 +3,17 @@ Rails.application.routes.draw do
   
   # Library Management System routes
   resources :books do
-    member do
-      patch :bulk
-    end
+    patch(:bulk, on: :collection)
   end
   
   resources :authors do
-    member do
+    collection do
       patch :bulk
     end
   end
   
   resources :categories do
-    member do
+    collection do
       patch :bulk
     end
   end

@@ -588,7 +588,7 @@ module CrudableHelper
   def action_ok?(ok_actions, action)
     # nil means allow all. False means no actions
     return false if ok_actions == false
-    ok_actions.nil? || ok_actions.include?(action)
+    ok_actions.nil? || (ok_actions == true) || ok_actions.include?(action)
   end
 
   private

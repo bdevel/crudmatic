@@ -3,17 +3,16 @@ module CrudableControllerMethods
 
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
-    include CrudableHelper
+    #helper Crudable::ExtendableHelper
     
     before_action :set_record, only: [:show, :edit, :update, :destroy]
-    before_action :setup_crudable_view_paths
-    
+
     class_attribute :_crudable_model_class
     class_attribute :_crudable_actions
     class_attribute :_crudable_search_attributes
     
     # Set defaults
-    self._crudable_actions = [:index, :show, :create, :update, :destroy]
+    self._crudable_actions = [:index, :show, :create, :update, :destroy, :bulk_edit]
   end
 
   class_methods do
@@ -55,12 +54,15 @@ module CrudableControllerMethods
     
     # Set attributes for views
     @attributes = model_class.respond_to?(:index_attributes) ? model_class.index_attributes : []
+    
+    render_with_engine_fallback
   end
 
   def show
     unless crud_actions.include?(:show)
       raise ActionController::RoutingError.new("Show action not allowed")
     end
+    render_with_engine_fallback
   end
 
   def new
@@ -69,9 +71,14 @@ module CrudableControllerMethods
     end
 
     @record = model_class.new
+    render_with_engine_fallback
   end
 
   def edit
+    unless crud_actions.include?(:update)
+      raise ActionController::RoutingError.new("Edit action not allowed")
+    end
+    render_with_engine_fallback
   end
 
   # POST
@@ -203,10 +210,18 @@ module CrudableControllerMethods
   
   protected
 
-  def setup_crudable_view_paths
-    prepend_view_path File.join(Crudable::Engine.root, 'app', 'views', 'crudable')
+  # Try host app's controller's views first.
+  # If no override exists, then fall back to engine default template for the action
+  def render_with_engine_fallback(action = action_name)
+    # 1. First, try host app view in its usual location, IE, app/view/books/index.html.erb
+    if lookup_context.exists?("#{controller_path}/#{action}", [], true)
+      render "#{controller_path}/#{action}"
+    else
+      # 2. Otherwise, fall back to engine flat template path, IE, app/view/crudable/index.html.erb
+      render template: "crudable/#{action}"
+    end
   end
-
+  
   def apply_search_params(scope)
     if params[:q] && model_class.respond_to?(:search_attributes)
       t = model_class.arel_table
