@@ -1,0 +1,6 @@
+<div class="navbar-text">
+  Total: <%= Book.count %> books
+</div>
+
+<!-- Add filter dropdowns -->
+<%= render 'crudable/nav_filter_dropdowns', model_class: Book %>

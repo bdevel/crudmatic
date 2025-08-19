@@ -6,11 +6,12 @@ class Category < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   
   # Crudable configuration
-  crudable :index_attributes, [:name, :description, :books_count]
+  crudable :index_attributes, [:name, :description, :active, :books_count]
   crudable :show_attributes, proc { |attrs| attrs + [{books: [:title, :author, :status]}] }
-  crudable :edit_attributes, [:name, :description, :color]
+  crudable :edit_attributes, [:name, :description, :color, :active]
   crudable :search_attributes, [:name, :description]
-  crudable :api_attributes, [:id, :name, :description, :color, :books]
+  crudable :api_attributes, [:id, :name, :description, :color, :active, :books]
+  crudable :filter_attributes, [:active]
   
   # Custom labels and input options
   crudable :label, :color, "Category Color"

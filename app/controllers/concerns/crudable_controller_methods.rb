@@ -3,7 +3,7 @@ module CrudableControllerMethods
 
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
-    #helper Crudable::ExtendableHelper
+    helper Crudable::ExtendableHelper
     
     before_action :set_record, only: [:show, :edit, :update, :destroy]
 
@@ -37,6 +37,7 @@ module CrudableControllerMethods
     @records = @records.order(index_order)
 
     @records = apply_search_params(@records)
+    @records = apply_filter_params(@records)
     
     # Apply pagination using offset
     @total_count     = @records.count
@@ -243,6 +244,23 @@ module CrudableControllerMethods
     scope
   end
 
+  def apply_filter_params(scope)
+    return scope unless model_class.respond_to?(:filter_attributes)
+    
+    model_class.filter_attributes.each do |filter_attr|
+      param_value = params[filter_attr.to_sym]
+      next if param_value.blank?
+      
+      # Only apply filter if this attribute is actually filterable
+      if model_class.filter_attributes.include?(filter_attr.to_sym) || 
+         model_class.filter_attributes.include?(filter_attr.to_s)
+        scope = scope.where(filter_attr => param_value)
+      end
+    end
+    
+    scope
+  end
+
   # Override if need to provide specific permissions or limiting scopes
   def records_scope
     model_class
@@ -258,14 +276,17 @@ module CrudableControllerMethods
     tmp_record   = model_class.new # used to get input type
     klass_sym    = model_class.model_name.singular.underscore.to_sym
     simple_attrs = model_class.permitted_attributes
-    array_attrs  = model_class.permitted_attributes.map do |a|
-      a = a.to_s.gsub(/[^a-zA-Z0-9_]/, '') # scrub
-      if tmp_record.respond_to?("#{a}_input_type") && tmp_record.send("#{a}_input_type") == :checkbox_multi
-        [a, []]
-      else
-        nil
-      end
-    end.compact.to_h
+
+    array_attrs = []
+    # this is for a javascript array, needs updating
+    # array_attrs  = model_class.permitted_attributes.map do |a|
+    #   a = a.to_s.gsub(/[^a-zA-Z0-9_]/, '') # scrub
+    #   if tmp_record.respond_to?("#{a}_input_type") && tmp_record.send("#{a}_input_type") == :checkbox_multi
+    #     [a, []]
+    #   else
+    #     nil
+    #   end
+    # end.compact.to_h
     
     # Replicate this syntax .permit(:name, :description, friends: [])
     out = params.require(klass_sym).permit(*simple_attrs, **array_attrs)

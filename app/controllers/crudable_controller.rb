@@ -226,15 +226,17 @@ class CrudableController < ApplicationController
     tmp_record   = model_class.new # used to get input type
     klass_sym    = model_class.model_name.singular.underscore.to_sym
     simple_attrs = model_class.permitted_attributes
-    array_attrs  = model_class.permitted_attributes.map do |a|
-      a = a.to_s.gsub(/[^a-zA-Z0-9_]/, '') # scrub
-      if tmp_record.respond_to?("#{a}_input_type") && tmp_record.send("#{a}_input_type") == :checkbox_multi
-        #[a, @record.send("#{a}_select_options")] # doesn't seem to reject items no in the array as expected, just
-        [a, []]
-      else
-        nil
-      end
-    end.compact.to_h
+
+    array_attrs = [] 
+    # array_attrs  = model_class.permitted_attributes.map do |a|
+    #   a = a.to_s.gsub(/[^a-zA-Z0-9_]/, '') # scrub
+    #   if tmp_record.respond_to?("#{a}_input_type") && tmp_record.send("#{a}_input_type") == :checkbox_multi
+    #     #[a, @record.send("#{a}_select_options")] # doesn't seem to reject items no in the array as expected, just
+    #     [a, []]
+    #   else
+    #     nil
+    #   end
+    # end.compact.to_h
     
     # Replicate this syntax .permit(:name, :description, friends: [])
     out = params.require(klass_sym).permit(*simple_attrs, **array_attrs)

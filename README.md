@@ -2,6 +2,9 @@
 add a custom method book_count to show a
 bulk editable attributes
 
+Mention that the search_attributes uses an sql LIKE and is not optimized for
+massive datasets. Tye can override the `apply_search_params(scope)` method if needed.
+
 
 # Crudable Rails Engine
 

@@ -160,9 +160,9 @@ module CrudableHelper
     if record.respond_to?(:crudable_config)
       type = record.crudable_config.input_type_for(attr)
       opts = record.crudable_config.select_options_for(attr, record)
-    elsif record.respond_to?("#{attr}_input_type")
-      type = record.send("#{attr}_input_type") #allow override, useful for JSON db type
-      opts = record.send(attr.to_s + "_select_options") rescue nil
+    #elsif record.respond_to?("#{attr}_input_type")
+    #  type = record.send("#{attr}_input_type") #allow override, useful for JSON db type
+    #  opts = record.send(attr.to_s + "_select_options") rescue nil
     elsif belongs_tos.include?(attr.to_s.sub(/_id$/, '').to_sym)
       type = :belongs_to
       opts = nil
@@ -171,7 +171,6 @@ module CrudableHelper
       opts = nil
     elsif column
       type = column.type
-      opts = record.send(attr.to_s + "_select_options") rescue nil
     else
       raise "unknown type for attribute #{attr.inspect}"
     end
@@ -224,7 +223,7 @@ module CrudableHelper
       form.text_area(attr, :class => 'form-control', :rows => [lines, 3].max)
       
     elsif type == :boolean
-      form.check_box(attr, :class => 'form-control')
+      form.check_box(attr, :class => '')
       
     elsif type == :integer
       form.number_field(attr, :class => 'form-control')
@@ -402,16 +401,12 @@ module CrudableHelper
 
       
     elsif column_type == :boolean || [true,false].include?(val)
-      if attr == :is_web_enabled
-        #raise val.inspect
-      end
-      
       if val == true
-        return content_tag(:span, "", :class => "glyphicon glyphicon-ok", style: "color: green").html_safe
+        return content_tag(:span, "☑", :class => "", style: "color: green", title: val.inspect).html_safe
       elsif val.nil?
-        return content_tag(:span, "", :class => "glyphicon glyphicon-minus", style: "color: #999", title: 'nil').html_safe
+        return content_tag(:span, "☐", :class => "", style: "color: #999", title: 'nil').html_safe
       elsif val == false
-        return content_tag(:span, "", :class => "glyphicon glyphicon-remove", style: "color: red").html_safe
+        return content_tag(:span, "☒", :class => "", style: "color: red", title: val.inspect).html_safe
       else
         return val.inspect
       end
@@ -430,7 +425,7 @@ module CrudableHelper
     elsif val.is_a?(String) && val =~ /^https?\:/ && !val.include?('@')  && !val.include?('<') # is a URL, but doesn't have a username specified
       # add a external link button, with text URL, instead of making entire link clickable.
       content_tag(:span) do
-        text = link_to(content_tag(:span, "", :class => "glyphicon glyphicon glyphicon-share").html_safe, val.to_s, target: "w#{rand}", rel: 'noreferrer nofollow')
+        text = link_to(content_tag(:span, "🔗", :class => "").html_safe, val.to_s, target: "w#{rand}", rel: 'noreferrer nofollow')
         text += ' ' + val.to_s
         text
       end

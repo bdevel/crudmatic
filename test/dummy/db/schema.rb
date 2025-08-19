@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 3) do
+ActiveRecord::Schema[8.0].define(version: 4) do
   create_table "authors", force: :cascade do |t|
     t.string "name", null: false
     t.text "bio"
@@ -48,6 +48,7 @@ ActiveRecord::Schema[8.0].define(version: 3) do
     t.string "color", default: "blue"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "active", default: true, null: false
     t.index ["name"], name: "index_categories_on_name", unique: true
   end
 
