@@ -1,2 +1,2 @@
-Crudable::Engine.routes.draw do
+Crudmatic::Engine.routes.draw do
 end

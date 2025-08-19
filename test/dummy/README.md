@@ -1,44 +1,44 @@
-# 📚 Library Management System - Crudable Engine Demo
+# 📚 Library Management System - Crudmatic Engine Demo
 
-This is a demonstration application showcasing the **Crudable Rails Engine** for automatic CRUD operations.
+This is a demonstration application showcasing the **Crudmatic Rails Engine** for automatic CRUD operations.
 
 ## 🎯 Purpose
 
-This dummy app demonstrates how to use the Crudable engine **without duplicating any view files**. All CRUD functionality (Create, Read, Update, Delete) is provided entirely by the engine while the app only defines:
+This dummy app demonstrates how to use the Crudmatic engine **without duplicating any view files**. All CRUD functionality (Create, Read, Update, Delete) is provided entirely by the engine while the app only defines:
 
-- **Models** with Crudable configuration
-- **Controllers** that inherit from CrudableController  
+- **Models** with Crudmatic configuration
+- **Controllers** that inherit from CrudmaticController  
 - **Routes** and basic layout
 
 ## 🏗️ Architecture
 
-### Models with CrudableRecord
+### Models with CrudmaticRecord
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Configure which attributes appear where
-  crudable :index_attributes, [:title, :author, :category, :status]
-  crudable :edit_attributes, [:title, :isbn, :author_id, :category_id, :status]
+  crudmatic :index_attributes, [:title, :author, :category, :status]
+  crudmatic :edit_attributes, [:title, :isbn, :author_id, :category_id, :status]
   
   # Custom input types and options
-  crudable :radio, :status, %w{available checked_out lost damaged}
-  crudable :label, :status, "Current Status"
-  crudable :input_note, :isbn, "Enter 13-digit ISBN without dashes"
+  crudmatic :radio, :status, %w{available checked_out lost damaged}
+  crudmatic :label, :status, "Current Status"
+  crudmatic :input_note, :isbn, "Enter 13-digit ISBN without dashes"
 end
 ```
 
-### Controllers with CrudableController
+### Controllers with CrudmaticController
 ```ruby
-class BooksController < CrudableController
+class BooksController < CrudmaticController
   self.model_class = Book
   # That's it! All CRUD actions are inherited from the engine
 end
 ```
 
 ### No View Duplication
-- ❌ No `app/views/crudable/` directory in dummy app
-- ✅ All views served directly from engine: `crudable/app/views/crudable/`
+- ❌ No `app/views/crudmatic/` directory in dummy app
+- ✅ All views served directly from engine: `crudmatic/app/views/crudmatic/`
 - ✅ Engine views automatically handle forms, listings, show pages
 - ✅ Custom configuration respected (radio buttons, dropdowns, labels, notes)
 
@@ -46,7 +46,7 @@ end
 
 ### 1. Setup Database
 ```bash
-cd crudable/test/dummy
+cd crudmatic/test/dummy
 bundle install
 rails db:create
 rails db:migrate
@@ -68,11 +68,11 @@ Visit http://localhost:3000 and explore:
 ## 🎨 Features Demonstrated
 
 ### Configuration Types
-- **Attribute Lists**: `crudable :index_attributes, [:name, :email]`
-- **Input Types**: `crudable :radio, :status, %w{active inactive}`  
-- **Custom Labels**: `crudable :label, :isbn, "ISBN (13 digits)"`
-- **Input Notes**: `crudable :input_note, :email, "Must be valid email"`
-- **Select Options**: `crudable :select_options, :color, %w{red blue green}`
+- **Attribute Lists**: `crudmatic :index_attributes, [:name, :email]`
+- **Input Types**: `crudmatic :radio, :status, %w{active inactive}`  
+- **Custom Labels**: `crudmatic :label, :isbn, "ISBN (13 digits)"`
+- **Input Notes**: `crudmatic :input_note, :email, "Must be valid email"`
+- **Select Options**: `crudmatic :select_options, :color, %w{red blue green}`
 
 ### Input Types Supported
 - ✅ **Text fields** (string columns)
@@ -80,8 +80,8 @@ Visit http://localhost:3000 and explore:
 - ✅ **Number fields** (integer/float columns)
 - ✅ **Date fields** (date columns)
 - ✅ **Checkboxes** (boolean columns)
-- ✅ **Radio buttons** (`crudable :radio`)
-- ✅ **Dropdowns** (`crudable :select_options`)
+- ✅ **Radio buttons** (`crudmatic :radio`)
+- ✅ **Dropdowns** (`crudmatic :select_options`)
 - ✅ **Association selects** (belongs_to relationships)
 - ✅ **Checkbox lists** (has_many relationships)
 
@@ -110,20 +110,20 @@ The seed file creates:
 ### Basic Configuration
 ```ruby
 # Show only specific attributes on index page
-crudable :index_attributes, [:name, :email, :status]
+crudmatic :index_attributes, [:name, :email, :status]
 
 # Custom form inputs
-crudable :radio, :priority, %w{low medium high urgent}
-crudable :select_options, :department, %w{sales marketing engineering}
+crudmatic :radio, :priority, %w{low medium high urgent}
+crudmatic :select_options, :department, %w{sales marketing engineering}
 ```
 
 ### Advanced Configuration  
 ```ruby
 # Dynamic options based on model instance
-crudable :dropdown, :city, proc {|model| model.state&.cities || [] }
+crudmatic :dropdown, :city, proc {|model| model.state&.cities || [] }
 
 # Proc-based attribute filtering
-crudable :show_attributes, proc {|attrs| attrs + [{comments: [:author, :content]}] }
+crudmatic :show_attributes, proc {|attrs| attrs + [{comments: [:author, :content]}] }
 ```
 
 ## 🎉 Result
@@ -138,4 +138,4 @@ A fully functional CRUD application with:
 
 ---
 
-*This demonstrates how the Crudable engine enables rapid development of admin interfaces and CRUD applications while maintaining flexibility for customization.*
+*This demonstrates how the Crudmatic engine enables rapid development of admin interfaces and CRUD applications while maintaining flexibility for customization.*

@@ -1,9 +1,0 @@
-<%= render 'crudable/nav', record: @record, actions: controller.crud_actions %>
-<%= render 'crudable/header', record: @records %>
-
-<% begin %>
-  <%= render partial: "#{controller.model_class.model_name.plural}/edit_extra" %>
-<% rescue ActionView::MissingTemplate => e %>
-<% end %>
-
-<%= render 'crudable/form', record: @record %>

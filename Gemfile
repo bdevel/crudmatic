@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in crudable.gemspec.
+# Specify your gem's dependencies in crudmatic.gemspec.
 gemspec
 
 gem "puma"

@@ -1,23 +1,23 @@
 class Category < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   has_many :books, dependent: :destroy
   
   validates :name, presence: true, uniqueness: true
   
-  # Crudable configuration
-  crudable :index_attributes, [:name, :description, :active, :books_count]
-  crudable :show_attributes, proc { |attrs| attrs + [{books: [:title, :author, :status]}] }
-  crudable :edit_attributes, [:name, :description, :color, :active]
-  crudable :search_attributes, [:name, :description]
-  crudable :api_attributes, [:id, :name, :description, :color, :active, :books]
-  crudable :filter_attributes, [:active]
+  # Crudmatic configuration
+  crudmatic :index_attributes, [:name, :description, :active, :books_count]
+  crudmatic :show_attributes, proc { |attrs| attrs + [{books: [:title, :author, :status]}] }
+  crudmatic :edit_attributes, [:name, :description, :color, :active]
+  crudmatic :search_attributes, [:name, :description]
+  crudmatic :api_attributes, [:id, :name, :description, :color, :active, :books]
+  crudmatic :filter_attributes, [:active]
   
   # Custom labels and input options
-  crudable :label, :color, "Category Color"
-  crudable :select_options, :color, %w{red blue green yellow purple orange pink gray}
-  crudable :input_note, :color, "Choose a color to help identify this category"
-  crudable :input_note, :description, "Brief description of what books belong in this category"
+  crudmatic :label, :color, "Category Color"
+  crudmatic :select_options, :color, %w{red blue green yellow purple orange pink gray}
+  crudmatic :input_note, :color, "Choose a color to help identify this category"
+  crudmatic :input_note, :description, "Brief description of what books belong in this category"
   
   def books_count
     books.count

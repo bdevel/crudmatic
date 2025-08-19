@@ -201,5 +201,5 @@ puts "\n📈 Book Status Distribution:"
 Book.group(:status).count.each do |status, count|
   puts "   #{status.titleize}: #{count}"
 end
-puts "\n🎯 Ready to test the Crudable engine!"
+puts "\n🎯 Ready to test the Crudmatic engine!"
 puts "   Start the server and visit: http://localhost:3000"

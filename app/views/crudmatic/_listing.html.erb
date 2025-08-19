@@ -1,0 +1,150 @@
+<% if local_assigns[:attributes] %>
+  <% attributes = local_assigns[:attributes] %>
+<% else %>
+  <!-- if records is empty, will rescue with [] -->
+  <% attributes = records.first.class.index_attributes rescue [] %>
+<% end %>
+
+<% show_actions = true %>
+<% show_actions = true if block_given? %>
+<% show_actions = false if local_assigns[:actions] == false %>
+
+<!-- Only show 500 max for now. -->
+<% if records.respond_to?(:arel) && records.arel.limit.nil? %>
+  <% records = records.limit(500) %>
+<% end %>
+  
+<% if records.length > 0 %>
+  <div class="crud-listing">
+    <div class="<%= css_classes.table_responsive_class %>">
+      <table class="<%= css_classes.table_class %>">
+        <thead>
+          <tr>
+            <% if show_actions %>
+              <th>
+                Actions
+                <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                  <div style="float: right; font-weight: normal;">
+                    <a href="#" onclick="bulkSelectAll(this); return false;" title="Bulk select all">All</a>
+                    /
+                    <a href="#" onclick="bulkSelectNone(this); return false;" title="Clear bulk selection">None</a>
+                    /
+                    <a href="#" onclick="bulkSelectInvert(this); return false;" title="Invert bulk selection">Invert</a>
+                  </div>
+                <% end %>
+              </th>
+            <% end %>
+
+            <% attributes.each do |f| %>
+              <th><%= model_attr_label(records.first, f) %></th>
+            <% end %>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% records.each do |item| %>
+            <tr>
+              <% if show_actions %>
+                <td class="<%= css_classes.text_center_class %> <%= css_classes.nowrap_class %>">
+                  <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+                    <div class="<%= css_classes.d_flex_class %> align-items-center <%= css_classes.gap_2_class %>">
+                      <label>
+                        <%= check_box_tag("bulk[]", item.id, false, id: "bulk-checkbox-#{item.id}", class:"bulk-checkbox") %>
+                      </label>
+                      <div class="<%= css_classes.btn_group_sm_class %>" role="group">
+                        <% if action_ok?(local_assigns[:actions], :show) %>
+                          <%= link_to view_path(item), class: css_classes.btn_outline_success_class, role: 'button' do %>
+                            <i class="bi bi-eye"></i>
+                            Show
+                          <% end %>
+                        <% end %>
+                        <% if action_ok?(local_assigns[:actions], :update) %>
+                          <%= link_to new_or_edit_path(item), class: css_classes.btn_outline_primary_class, role: 'button' do %>
+                            <i class="bi bi-pencil"></i>
+                            Edit
+                          <% end %>
+                        <% end %>
+                        <% if action_ok?(local_assigns[:actions], :destroy) %>
+                          <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button', method: :delete do %>
+                            <i class="bi bi-trash"></i>
+                            Delete
+                          <% end %>
+                        <% end %>
+                        <% if block_given? %>
+                          <%= yield item %>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% else %>
+                    <div class="<%= css_classes.btn_group_sm_class %>" role="group">
+                      <% if action_ok?(local_assigns[:actions], :show) %>
+                        <%= link_to view_path(item), class: css_classes.btn_outline_success_class, role: 'button' do %>
+                          <i class="bi bi-eye"></i>
+                          Show
+                        <% end %>
+                      <% end %>
+                      <% if action_ok?(local_assigns[:actions], :update) %>
+                        <%= link_to new_or_edit_path(item), class: css_classes.btn_outline_primary_class, role: 'button' do %>
+                          <i class="bi bi-pencil"></i>
+                          Edit
+                        <% end %>
+                      <% end %>
+                      <% if action_ok?(local_assigns[:actions], :destroy) %>
+                        <%= link_to item, data: { confirm: "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button', method: :delete do %>
+                          <i class="bi bi-trash"></i>
+                          Delete
+                        <% end %>
+                      <% end %>
+                      <% if block_given? %>
+                        <%= yield item %>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </td>
+              <% end %>
+              <% attributes.each.with_index do |f,i| %>
+                <td>
+                  <%= formatted_value(item, f, :listing) %>
+                </td>
+              <% end %>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
+      <div class="bulk-edit-form-container" style="display:none">
+        <h3>Bulk Update</h3>
+        <% edit_attributes = local_assigns[:bulk_edit_attributes] %>
+        <% edit_attributes = edit_attributes || (records.first.class.bulk_editable_attributes rescue nil) %>
+        <% edit_attributes = edit_attributes || (records.first.class.editable_attributes rescue nil) %>
+        <% form_record = records.first.class.new() %>
+        <%= form_for(form_record, :url => bulk_path(form_record.class), :method => "patch", html: { role: "form" }) do |f| %>
+          <input class="bulk-ids-input" type="hidden" name="id" value="">
+          <% edit_attributes.each do |attr| %>
+            <%# makes sure the after_initialize hook defaults does not set these to non-nil which is needed to know whether to update %>
+            <% form_record.send("#{attr}=", nil) %>
+            <div class="<%= css_classes.form_group_class %>">
+              <label class="<%= css_classes.form_label_class %>"><%= model_attr_label(form_record, attr) %></label>
+              <div class="<%= css_classes.form_control_wrapper_class %>">
+                <%= crud_edit_attr(f, attr) %>
+                <% note = input_note_for(form_record, attr) %>
+                <% if note || form_record.respond_to?(attr.to_s + "_input_notes") %>
+                  <div class="<%= css_classes.form_text_class %>"><%= note || form_record.send(attr.to_s + "_input_notes") %></div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+
+          <div class="<%= css_classes.form_group_class %>">
+            <div class="<%= css_classes.form_control_wrapper_class %> <%= css_classes.offset_sm_2_class %>">
+              <%= f.submit 'Update', class: css_classes.btn_success_class %>
+            </div>
+          </div>
+        <% end %>
+
+        <%= render 'crudmatic/shared/bulk_edit_javascript' %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

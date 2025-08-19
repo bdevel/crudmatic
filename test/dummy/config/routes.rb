@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  mount Crudable::Engine => "/crudable"
+  mount Crudmatic::Engine => "/crudmatic"
   
   # Library Management System routes
   resources :books do

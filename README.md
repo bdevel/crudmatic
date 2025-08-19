@@ -1,8 +1,8 @@
-# Crudable Rails Engine
+# Crudmatic Rails Engine
 
 A powerful Rails engine that automatically builds listing pages, forms, and show
 pages using a central customizable template, based on your ActiveRecord model
-columns. Simply include the `CrudableRecord` concern in your models, configure
+columns. Simply include the `CrudmaticRecord` concern in your models, configure
 which attributes to display, and get a fully functional data entry interface.
 
 ## Features
@@ -34,14 +34,14 @@ which attributes to display, and get a fully functional data entry interface.
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   belongs_to :author
   belongs_to :category
   
   # Basic configuration - that's it!
-  crudable :index_attributes, [:title, :author, :category, :status]
-  crudable :edit_attributes, [:title, :author, :category, :status]
+  crudmatic :index_attributes, [:title, :author, :category, :status]
+  crudmatic :edit_attributes, [:title, :author, :category, :status]
 end
 ```
 
@@ -56,12 +56,12 @@ end
 ### 3. Create Controller
 
 ```ruby
-# Include CrudableControllerMethods in your controller
+# Include CrudmaticControllerMethods in your controller
 class BooksController < ApplicationController
-  include CrudableControllerMethods
+  include CrudmaticControllerMethods
   
-  crudable_controller_for Book
-  crudable_actions [:index, :show, :create, :update, :destroy]
+  crudmatic_controller_for Book
+  crudmatic_actions [:index, :show, :create, :update, :destroy]
 end
 ```
 
@@ -71,14 +71,14 @@ end
 
 ```ruby
 class Product < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Customize which attributes appear in each context.
   # Or let it choose a sensable defaults (`text` columns not on index page).
-  crudable :index_attributes, [:name, :price, :category, :status]
-  crudable :show_attributes, [:name, :description, :price, :category, :status, :created_at]
-  crudable :edit_attributes, [:name, :description, :price, :category_id, :status]
-  crudable :search_attributes, [:name, :description]
+  crudmatic :index_attributes, [:name, :price, :category, :status]
+  crudmatic :show_attributes, [:name, :description, :price, :category, :status, :created_at]
+  crudmatic :edit_attributes, [:name, :description, :price, :category_id, :status]
+  crudmatic :search_attributes, [:name, :description]
 end
 ```
 
@@ -86,24 +86,24 @@ end
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   belongs_to :author
   belongs_to :category
   has_many   :reviews
   
   # Use procs for dynamic configuration
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs - [:author_id, :category_id] + [:author, :category, :reviews] 
   }
   
   # Nested relationships with specific attributes
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs + [{reviews: [:rating, :comment, :reviewer_name]}] 
   }
   
   # Belongs_to with custom attributes (displays as nested show view)
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs + [{:category => [:name, :color, :description]}] 
   }
 end
@@ -113,21 +113,21 @@ end
 
 ```ruby
 class User < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Radio buttons
-  crudable :radio, :status, %w{active inactive pending}
+  crudmatic :radio, :status, %w{active inactive pending}
   
   # Dropdowns with custom options
   # NOTE, still need to add your own validations.
-  crudable :dropdown, :role, %w{admin user moderator}
+  crudmatic :dropdown, :role, %w{admin user moderator}
   
   # Custom labels
-  crudable :label, :email_address, "Email"
-  crudable :label, :created_at, "Registration Date"
+  crudmatic :label, :email_address, "Email"
+  crudmatic :label, :created_at, "Registration Date"
   
   # Input help text
-  crudable :input_note, :bio, "Brief description visible to other users"
+  crudmatic :input_note, :bio, "Brief description visible to other users"
 end
 ```
 
@@ -135,14 +135,14 @@ end
 
 ```ruby
 class Article < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Custom pagination limit
-  crudable :pagination_limit, 25
+  crudmatic :pagination_limit, 25
   
   # Default sorting
-  crudable :index_order, { created_at: :desc }
-  crudable :index_order, { title: :asc, created_at: :desc }
+  crudmatic :index_order, { created_at: :desc }
+  crudmatic :index_order, { title: :asc, created_at: :desc }
 end
 ```
 
@@ -152,10 +152,10 @@ Configure which attributes can be bulk-edited from the index page:
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Allow bulk editing of status and category only
-  crudable :bulk_editable_attributes, [:status, :category_id]
+  crudmatic :bulk_editable_attributes, [:status, :category_id]
   
   # If not specified, falls back to edit_attributes
 end
@@ -169,10 +169,10 @@ Add dropdown filters to the navigation bar:
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Add filter dropdowns for these attributes
-  crudable :filter_attributes, [:status, :category_id]
+  crudmatic :filter_attributes, [:status, :category_id]
 end
 ```
 
@@ -184,9 +184,9 @@ Add computed or custom methods to your model and include them in show attributes
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
-  crudable :show_attributes, [:title, :author, :total_reviews, :reading_level]
+  crudmatic :show_attributes, [:title, :author, :total_reviews, :reading_level]
   
   # Custom computed attribute
   def total_reviews
@@ -210,16 +210,16 @@ Search functionality uses SQL `LIKE %term%` queries which work well for small to
 
 ```ruby
 # Default search implementation
-crudable :search_attributes, [:title, :description]  # Uses LIKE %term%
+crudmatic :search_attributes, [:title, :description]  # Uses LIKE %term%
 ```
 
 For better performance on large datasets, override the search method in your controller:
 
 ```ruby
 class BooksController < ApplicationController
-  include CrudableControllerMethods
+  include CrudmaticControllerMethods
   
-  crudable_controller_for Book
+  crudmatic_controller_for Book
   
   private
   
@@ -236,7 +236,7 @@ end
 
 ## CSS Framework Customization
 
-Crudable uses a flexible form wrapper system that supports different CSS frameworks.
+Crudmatic uses a flexible form wrapper system that supports different CSS frameworks.
 
 ### Bootstrap 5 (Default)
 
@@ -250,7 +250,7 @@ Set the CSS framework globally in your Rails application:
 # config/application.rb or config/environments/development.rb
 Rails.application.configure do
   # Choose CSS framework: :bootstrap (default) or :tailwind
-  config.crudable.css_framework = :bootstrap
+  config.crudmatic.css_framework = :bootstrap
 end
 ```
 
@@ -263,9 +263,9 @@ Available options:
 To use Tailwind CSS, create a custom form wrapper:
 
 ```ruby
-# app/helpers/crudable/bootstrap_form.rb
-module Crudable
-  class BootstrapForm < Crudable::BootstrapForm
+# app/helpers/crudmatic/bootstrap_form.rb
+module Crudmatic
+  class BootstrapForm < Crudmatic::BootstrapForm
     def self.form_control_class
       'block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500'
     end
@@ -288,16 +288,16 @@ end
 Or use the TailwindForm as a starting point:
 
 ```ruby
-# app/helpers/crudable/extendable_helper.rb
-module Crudable
+# app/helpers/crudmatic/extendable_helper.rb
+module Crudmatic
   module ExtendableHelper
-    include CrudableHelper
+    include CrudmaticHelper
     
     def crud_edit_attr(form, attr, settings = nil)
       # Use TailwindForm instead of BootstrapForm
       settings = {} if settings.nil?
       record = form.object
-      # ... copy implementation but use Crudable::TailwindForm.new(form, self)
+      # ... copy implementation but use Crudmatic::TailwindForm.new(form, self)
     end
   end
 end
@@ -308,9 +308,9 @@ end
 For Bulma, Foundation, or custom CSS frameworks, override the class methods:
 
 ```ruby
-# app/helpers/crudable/bootstrap_form.rb
-module Crudable
-  class BootstrapForm < Crudable::BootstrapForm
+# app/helpers/crudmatic/bootstrap_form.rb
+module Crudmatic
+  class BootstrapForm < Crudmatic::BootstrapForm
     def self.form_control_class
       'input'  # Bulma class
     end
@@ -324,11 +324,11 @@ end
 
 ## JSON:API Endpoints
 
-Crudable automatically provides RESTful JSON API endpoints following the [JSON:API specification](https://jsonapi.org/). No additional configuration required!
+Crudmatic automatically provides RESTful JSON API endpoints following the [JSON:API specification](https://jsonapi.org/). No additional configuration required!
 
 ### Available Endpoints
 
-For any model with CrudableController, you get:
+For any model with CrudmaticController, you get:
 
 ```bash
 # Collection endpoints
@@ -385,10 +385,10 @@ The JSON responses respect your `api_attributes` configuration:
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   # Customize what appears in JSON responses
-  crudable :api_attributes, [:id, :title, :isbn, :status, :author, :category]
+  crudmatic :api_attributes, [:id, :title, :isbn, :status, :author, :category]
 end
 ```
 
@@ -398,17 +398,17 @@ end
 
 ```ruby
 class Author < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   has_many :books
   
   # Show books with specific attributes in a table
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs + [{books: [:title, :isbn, :status]}] 
   }
   
   # With actions specified. Don't show the "delete" button.
   # NOTE, this does not disable the DESTROY action on the controller.
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs + [{books: {attributes: [:title, :status], actions: [:show, :edit]}}] 
   }
 end
@@ -418,15 +418,15 @@ end
 
 ```ruby
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   belongs_to :author
   belongs_to :category
   
   # Simple association display (shows as link)
-  crudable :show_attributes, proc { |attrs| attrs + [:author] }
+  crudmatic :show_attributes, proc { |attrs| attrs + [:author] }
   
   # Nested attribute display (shows as embedded form)
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs + [{:category => [:name, :color, :description]}] 
   }
 end
@@ -434,7 +434,7 @@ end
 
 ## Template Overrides
 
-Crudable allows you to override any template to customize the UI for specific models or globally.
+Crudmatic allows you to override any template to customize the UI for specific models or globally.
 
 ### Override Specific Model Templates
 
@@ -472,13 +472,13 @@ To override templates for all models, copy them from the engine:
 
 ```bash
 # Copy templates to your app
-cp -r crudable/app/views/crudable/* app/views/crudable/
+cp -r crudmatic/app/views/crudmatic/* app/views/crudmatic/
 ```
 
 Then modify as needed. Available templates and partials:
 
 ```
-app/views/crudable/
+app/views/crudmatic/
 ├── index.html.erb                  # Global index template
 ├── show.html.erb                   # Global show template
 ├── edit.html.erb                   # Global edit template
@@ -499,13 +499,13 @@ app/views/crudable/
 
 ### Extending Helper Methods
 
-Crudable uses an extendable helper pattern. To add your own helper methods or include other helpers, create this file in your app:
+Crudmatic uses an extendable helper pattern. To add your own helper methods or include other helpers, create this file in your app:
 
 ```ruby
-# app/helpers/crudable/extendable_helper.rb
-module Crudable
+# app/helpers/crudmatic/extendable_helper.rb
+module Crudmatic
   module ExtendableHelper
-    include CrudableHelper  # Required for core functionality
+    include CrudmaticHelper  # Required for core functionality
     include YourOtherHelpers  # Optional: include other helpers
     
     # Add your custom helper methods
@@ -546,7 +546,7 @@ Add extra navigation items by creating partials:
 
 ## Styling and Javascript
 
-Crudable uses Bootstrap 5 for styling. Include Bootstrap CSS and JS in your layout:
+Crudmatic uses Bootstrap 5 for styling. Include Bootstrap CSS and JS in your layout:
 
 ```html
 <!-- app/views/layouts/application.html.erb -->
@@ -566,7 +566,7 @@ Crudable uses Bootstrap 5 for styling. Include Bootstrap CSS and JS in your layo
 
 ```ruby
 class Product < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   belongs_to :category
   belongs_to :supplier
@@ -574,8 +574,8 @@ class Product < ApplicationRecord
   has_many :order_items
   
   # Attribute configurations
-  crudable :index_attributes, [:name, :category, :price, :stock_level, :status]
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :index_attributes, [:name, :category, :price, :stock_level, :status]
+  crudmatic :show_attributes, proc { |attrs| 
     attrs - [:category_id, :supplier_id] + [
       :category, 
       {:supplier => [:name, :email, :phone]},
@@ -583,22 +583,22 @@ class Product < ApplicationRecord
       :total_sold
     ] 
   }
-  crudable :edit_attributes, [:name, :description, :price, :category_id, :supplier_id, :stock_level, :status]
-  crudable :search_attributes, [:name, :description, :sku]
+  crudmatic :edit_attributes, [:name, :description, :price, :category_id, :supplier_id, :stock_level, :status]
+  crudmatic :search_attributes, [:name, :description, :sku]
   
   # UI Configuration
-  crudable :pagination_limit, 20
-  crudable :index_order, { name: :asc }
+  crudmatic :pagination_limit, 20
+  crudmatic :index_order, { name: :asc }
   
   # Input types
-  crudable :radio, :status, %w{active discontinued limited_stock}
-  crudable :dropdown, :category_id, -> { Category.active.pluck(:name, :id) }
+  crudmatic :radio, :status, %w{active discontinued limited_stock}
+  crudmatic :dropdown, :category_id, -> { Category.active.pluck(:name, :id) }
   
   # Labels and help
-  crudable :label, :stock_level, "Items in Stock"
-  crudable :label, :category_id, "Product Category"
-  crudable :input_note, :price, "Enter price in USD without currency symbol"
-  crudable :input_note, :stock_level, "Current inventory count"
+  crudmatic :label, :stock_level, "Items in Stock"
+  crudmatic :label, :category_id, "Product Category"
+  crudmatic :input_note, :price, "Enter price in USD without currency symbol"
+  crudmatic :input_note, :stock_level, "Current inventory count"
   
   def total_sold
     order_items.sum(:quantity)
@@ -610,13 +610,13 @@ end
 
 ```ruby
 class Order < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   belongs_to :customer
   has_many :order_items
   has_many :products, through: :order_items
   
-  crudable :show_attributes, proc { |attrs| 
+  crudmatic :show_attributes, proc { |attrs| 
     attrs - [:customer_id] + [
       {:customer => [:name, :email, :phone]},
       {:order_items => {
@@ -635,7 +635,7 @@ end
 Add this line to your application's Gemfile:
 
 ```ruby
-gem "crudable"
+gem "crudmatic"
 ```
 
 And then execute:
@@ -645,7 +645,7 @@ $ bundle
 
 Or install it yourself as:
 ```bash
-$ gem install crudable
+$ gem install crudmatic
 ```
 
 ## Demo Application
@@ -656,17 +656,17 @@ System with Books, Authors, and Categories. Run the demo:
 ```bash
 # Run the test dummy app:
 bundle install
-cd crudable/test/dummy
+cd crudmatic/test/dummy
 rails db:create db:migrate db:seed
 rails server -p 5000
 # Visit http://localhost:5000
 ```
 
-Visit http://localhost:5000 to see Crudable in action!
+Visit http://localhost:5000 to see Crudmatic in action!
 
-## What Crudable Does NOT Provide
+## What Crudmatic Does NOT Provide
 
-Crudable is focused on providing CRUD interfaces and does not implement the
+Crudmatic is focused on providing CRUD interfaces and does not implement the
 following security and business logic features. These are are left for you to
 decide how to implement.
 
@@ -696,15 +696,15 @@ decide how to implement.
 
 ### ⚠️ **Security Considerations**
 
-**Crudable is designed for admin interfaces and internal tools.** For public-facing applications, you must implement:
+**Crudmatic is designed for admin interfaces and internal tools.** For public-facing applications, you must implement:
 
 ```ruby
 # Add your own authentication
 class BooksController < ApplicationController
-  include CrudableControllerMethods
+  include CrudmaticControllerMethods
   
-  crudable_controller_for Book
-  crudable_actions [:index, :show, :create, :update, :destroy]
+  crudmatic_controller_for Book
+  crudmatic_actions [:index, :show, :create, :update, :destroy]
   
   before_action :authenticate_user!
   before_action :require_admin!
@@ -712,7 +712,7 @@ end
 
 # Add your own validations
 class Book < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   validates :title, presence: true, length: { maximum: 255 }
   validates :isbn, presence: true, uniqueness: true
@@ -721,10 +721,10 @@ end
 
 # Add your own authorization
 class BooksController < ApplicationController
-  include CrudableControllerMethods
+  include CrudmaticControllerMethods
   
-  crudable_controller_for Book
-  crudable_actions [:index, :show, :create, :update] # Note: no :destroy
+  crudmatic_controller_for Book
+  crudmatic_actions [:index, :show, :create, :update] # Note: no :destroy
   
   before_action :check_permissions
   
@@ -742,9 +742,9 @@ class BooksController < ApplicationController
 end
 ```
 
-**Use Crudable for:** Admin panels, internal tools, prototyping, development interfaces
+**Use Crudmatic for:** Admin panels, internal tools, prototyping, development interfaces
 
-**Don't use Crudable for:** Public APIs, user-facing forms, production apps without additional security
+**Don't use Crudmatic for:** Public APIs, user-facing forms, production apps without additional security
 
 ## Requirements
 

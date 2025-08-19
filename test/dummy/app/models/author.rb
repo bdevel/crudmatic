@@ -1,25 +1,25 @@
 class Author < ApplicationRecord
-  include CrudableRecord
+  include CrudmaticRecord
   
   has_many :books, dependent: :destroy
   
   validates :name, presence: true
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   
-  # Crudable configuration
-  crudable :index_attributes, [:name, :email, :birth_date, :books_count]
-  crudable :show_attributes, proc { |attrs| attrs + [{books: {actions: true, attributes: [:title, :isbn, :status]}}] }
-  crudable :edit_attributes, [:name, :bio, :birth_date, :email, :website]
-  crudable :search_attributes, [:name, :bio]
-  crudable :api_attributes, [:id, :name, :bio, :birth_date, :email, :website, :books]
-  crudable :index_order, { name: :asc }  # Sort authors alphabetically by name
+  # Crudmatic configuration
+  crudmatic :index_attributes, [:name, :email, :birth_date, :books_count]
+  crudmatic :show_attributes, proc { |attrs| attrs + [{books: {actions: true, attributes: [:title, :isbn, :status]}}] }
+  crudmatic :edit_attributes, [:name, :bio, :birth_date, :email, :website]
+  crudmatic :search_attributes, [:name, :bio]
+  crudmatic :api_attributes, [:id, :name, :bio, :birth_date, :email, :website, :books]
+  crudmatic :index_order, { name: :asc }  # Sort authors alphabetically by name
   
   # Custom labels and input notes
-  crudable :label, :bio, "Author Biography"
-  crudable :label, :birth_date, "Date of Birth"
-  crudable :input_note, :email, "Optional - used for contact purposes"
-  crudable :input_note, :website, "Include http:// or https://"
-  crudable :input_note, :bio, "Brief description of the author's background"
+  crudmatic :label, :bio, "Author Biography"
+  crudmatic :label, :birth_date, "Date of Birth"
+  crudmatic :input_note, :email, "Optional - used for contact purposes"
+  crudmatic :input_note, :website, "Include http:// or https://"
+  crudmatic :input_note, :bio, "Brief description of the author's background"
   
   def books_count
     books.count

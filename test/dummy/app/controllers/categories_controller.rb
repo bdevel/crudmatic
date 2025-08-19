@@ -1,9 +1,9 @@
 class CategoriesController < ApplicationController
-  include CrudableControllerMethods
+  include CrudmaticControllerMethods
   
-  #crudable_controller_for Category
-  #crudable_actions [:index, :show, :create, :update, :destroy]
+  #crudmatic_controller_for Category
+  #crudmatic_actions [:index, :show, :create, :update, :destroy]
   
   # Optional: Override any methods if needed for custom behavior
-  # For now, we'll use all the default CRUD actions from CrudableControllerMethods
+  # For now, we'll use all the default CRUD actions from CrudmaticControllerMethods
 end

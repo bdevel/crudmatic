@@ -2,6 +2,6 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
   
-  # Include CrudableHelper to make all helper methods available
-  include CrudableHelper
+  # Include CrudmaticHelper to make all helper methods available
+  include CrudmaticHelper
 end

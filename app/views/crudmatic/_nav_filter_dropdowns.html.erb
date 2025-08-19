@@ -1,0 +1,66 @@
+<% model_class = local_assigns[:model_class] %>
+<% if model_class && model_class.respond_to?(:filter_attributes) && model_class.filter_attributes.any? %>
+  <script type="text/javascript">
+    function queryStringToObj(qs){
+      qs = qs.replace(/^\?/, '');
+      if (qs.length == 0){return {};}
+      return JSON.parse('{"' + decodeURI(qs).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"') + '"}');
+    }
+
+    function mergeQueryStrings(qs1, qs2){
+      var obj1 = queryStringToObj(qs1);
+      var obj2 = queryStringToObj(qs2);
+      var combo = Object.assign(obj1, obj2);
+      
+      // Remove offset when changing filters to go back to first page
+      delete combo.offset;
+      
+      var parts = [];
+      for(var k in combo){
+        if (combo[k]){
+          parts.push(k +"=" + encodeURI(combo[k]));
+        }
+      }
+      return parts.join('&');
+    }
+    
+    function updateQueryParamsFromDropdown(dropdown){
+      var query = location.search
+      var queryChange = dropdown.options[dropdown.selectedIndex].value;
+      var newQuery = '?' + mergeQueryStrings(query, queryChange);
+      var newUrl = window.location.pathname + newQuery;
+      window.location = newUrl;
+    }
+  </script>
+
+  <div class="<%= css_classes.d_flex_class %> <%= css_classes.gap_2_class %>">
+    <% model_class.filter_attributes.each do |attr| %>
+      <div class="<%= css_classes.input_group_sm_class %>">
+        <span class="<%= css_classes.input_group_text_class %>"><%= model_attr_label(model_class.new, attr) %></span>
+        <select class="<%= css_classes.form_select_sm_class %>" onchange="updateQueryParamsFromDropdown(this)">
+          <option value="?<%= attr %>=">All</option>
+          <% 
+            # Get filter options for this attribute
+            filter_options = []
+            if model_class.respond_to?(:crudmatic_config)
+              filter_options = model_class.crudmatic_config.select_options_for(attr)
+            end
+            
+            # Fall back to distinct values from database if no options configured
+            if filter_options.nil? || filter_options.empty?
+              filter_options = model_class.distinct.pluck(attr).compact.sort rescue []
+            end
+          %>
+          <% filter_options.each do |option| %>
+            <% if option.is_a?(Array) %>
+              <% label, value = option %>
+              <option value="?<%= attr %>=<%= value %>" <%= 'selected' if params[attr.to_sym] == value.to_s %>><%= label %></option>
+            <% else %>
+              <option value="?<%= attr %>=<%= option %>" <%= 'selected' if params[attr.to_sym] == option.to_s %>><%= option.to_s.titleize %></option>
+            <% end %>
+          <% end %>
+        </select>
+      </div>
+    <% end %>
+  </div>
+<% end %>
