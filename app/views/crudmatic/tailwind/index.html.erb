@@ -1,0 +1,80 @@
+<%= render 'crudmatic/tailwind/nav', record: controller.model_class, actions: controller.crud_actions %>
+<%= render 'crudmatic/tailwind/header', record: @records %>
+
+<% begin %>
+  <%= render partial: "#{controller.to_s.underscore.sub('_controller', '').gsub(' ', '_')}/index_extra" %>
+<% rescue ActionView::MissingTemplate => e %>
+<% end %>
+
+<% if @records.empty? %>
+  <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+        </svg>
+      </div>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-yellow-800">No records to show</h3>
+        <div class="mt-2 text-sm text-yellow-700">
+          <p>Get started by creating a new record.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<% else %>
+  <%= render 'crudmatic/tailwind/listing', records: @records, actions: controller.crud_actions, attributes: @attributes %>
+  
+  <!-- Pagination controls -->
+  <% if @total_count > @limit %>
+    <div class="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-6">
+      <div class="flex flex-1 justify-between sm:hidden">
+        <% if @has_previous %>
+          <%= link_to "Previous", url_for(request.query_parameters.merge(offset: @previous_offset)), class: "relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+        <% end %>
+        <% if @has_next %>
+          <%= link_to "Next", url_for(request.query_parameters.merge(offset: @next_offset)), class: "relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" %>
+        <% end %>
+      </div>
+      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Showing <span class="font-medium"><%= @offset + 1 %></span> to <span class="font-medium"><%= [@offset + @limit, @total_count].min %></span> of <span class="font-medium"><%= @total_count %></span> results
+          </p>
+        </div>
+        <div>
+          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <% if @has_previous %>
+              <%= link_to url_for(request.query_parameters.merge(offset: @previous_offset)), class: "relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0" do %>
+                <span class="sr-only">Previous</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                </svg>
+              <% end %>
+            <% end %>
+            
+            <% if @total_pages <= 10 %>
+              <% (1..@total_pages).each do |page| %>
+                <% page_offset = (page - 1) * @limit %>
+                <% if page == @current_page %>
+                  <span class="relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"><%= page %></span>
+                <% else %>
+                  <%= link_to page, url_for(request.query_parameters.merge(offset: page_offset)), class: "relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0" %>
+                <% end %>
+              <% end %>
+            <% end %>
+            
+            <% if @has_next %>
+              <%= link_to url_for(request.query_parameters.merge(offset: @next_offset)), class: "relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0" do %>
+                <span class="sr-only">Next</span>
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                </svg>
+              <% end %>
+            <% end %>
+          </nav>
+        </div>
+      </div>
+    </div>
+  <% end %>
+<% end %>

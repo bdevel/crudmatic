@@ -1,0 +1,16 @@
+<% # This partial renders a checkbox selection interface %>
+<div class="space-y-3">
+  <div class="flex items-center justify-between">
+    <h3 class="text-sm font-medium text-gray-900">Select Items</h3>
+    <div class="flex items-center space-x-2 text-sm text-gray-500">
+      <button type="button" onclick="bulkSelectAll(this)" class="text-blue-600 hover:text-blue-900">All</button>
+      <span>|</span>
+      <button type="button" onclick="bulkSelectNone(this)" class="text-blue-600 hover:text-blue-900">None</button>
+      <span>|</span>
+      <button type="button" onclick="bulkSelectInvert(this)" class="text-blue-600 hover:text-blue-900">Invert</button>
+    </div>
+  </div>
+  <div class="border-t border-gray-200">
+    <!-- Checkboxes will be rendered by the listing template -->
+  </div>
+</div>

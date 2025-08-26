@@ -1,0 +1,27 @@
+<% if record.present? %>
+  <% attrs = local_assigns[:attrs] || local_assigns[:attributes] || [] %>
+  <% attrs = record.keys if record.respond_to?(:keys) && attrs.blank? %>
+  <% raise RuntimeError.new("Hashmap show partial could not determine attributes of record type #{record.class.to_s}") if attrs.blank? %>
+  
+  <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="border-t border-gray-200">
+      <dl>
+        <% attrs.each_with_index do |k, index| %>
+          <div class="<%= index.even? ? 'bg-gray-50' : 'bg-white' %> px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+            <dt class="text-sm font-medium text-gray-500">
+              <%= titleize_attr k.to_s.gsub(".", " ") %>
+            </dt>
+            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+              <% value = formatted_value(record, k.to_s.split('.').map(&:to_sym), :show) %>
+              <% if value.present? %>
+                <%= value %>
+              <% else %>
+                <span class="text-gray-400 italic">Not set</span>
+              <% end %>
+            </dd>
+          </div>
+        <% end %>
+      </dl>
+    </div>
+  </div>
+<% end %>

@@ -19,7 +19,7 @@
         <thead class="bg-gray-50">
           <tr>
             <% if show_actions %>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1">
                 Actions
                 <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
                   <div class="float-right font-normal">
@@ -33,8 +33,9 @@
               </th>
             <% end %>
 
-            <% attributes.each do |f| %>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><%= model_attr_label(records.first, f) %></th>
+            <% attributes.each.with_index do |f, index| %>
+              <% is_last = index == attributes.length - 1 %>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider<%= ' w-full' if is_last %>"><%= model_attr_label(records.first, f) %></th>
             <% end %>
           </tr>
         </thead>
@@ -43,7 +44,7 @@
           <% records.each do |item| %>
             <tr class="hover:bg-gray-50">
               <% if show_actions %>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
+                <td class="px-6 py-4 whitespace-nowrap text-center w-1">
                   <div class="flex items-center space-x-2">
                     <% if action_ok?(local_assigns[:actions], :bulk_edit) %>
                       <label>
@@ -76,7 +77,8 @@
                 </td>
               <% end %>
               <% attributes.each.with_index do |f,i| %>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <% is_last = i == attributes.length - 1 %>
+                <td class="px-6 py-4 text-sm text-gray-900<%= is_last ? ' w-full' : ' whitespace-nowrap' %>">
                   <%= formatted_value(item, f, :listing) %>
                 </td>
               <% end %>

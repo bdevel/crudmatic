@@ -34,51 +34,62 @@ module Crudmatic
       @helper_context = helper_context
     end
     
-    # Placeholder CSS class methods - override in host app
+    # Tailwind CSS class methods
     def self.form_control_class
-      ''  # Override with Tailwind classes
+      'block w-full px-3 py-2 text-sm border border-gray-300 rounded-md placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
     end
     
     def self.form_control_radio_class
-      ''  # Override with Tailwind classes
+      'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 focus:ring-2'
     end
     
     def self.radio_group_class
-      ''  # Override with Tailwind classes
+      'space-y-3'
     end
     
     def self.radio_item_class
-      ''  # Override with Tailwind classes
+      'flex items-center'
     end
     
-    # Form field methods - by default just delegate to form_builder
-    # Override in host app to add Tailwind classes
+    # Form field methods with Tailwind classes
     def text_field(attr, options = {})
+      options = { class: self.class.form_control_class }.merge(options)
       form_builder.text_field(attr, options)
     end
     
     def text_area(attr, options = {})
+      options = { class: self.class.form_control_class, rows: 4 }.merge(options)
       form_builder.text_area(attr, options)
     end
     
     def check_box(attr, options = {})
+      options = { class: 'w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2' }.merge(options)
       form_builder.check_box(attr, options)
     end
     
     def number_field(attr, options = {})
+      options = { class: self.class.form_control_class }.merge(options)
       form_builder.number_field(attr, options)
     end
     
     def date_field(attr, options = {})
+      options = { class: self.class.form_control_class }.merge(options)
       form_builder.date_field(attr, options)
     end
     
     def datetime_field(attr, options = {})
+      options = { class: self.class.form_control_class }.merge(options)
       form_builder.datetime_field(attr, options)
     end
     
     def collection_select(attr, collection, value_method, text_method, select_options = {}, html_options = {})
+      html_options = { class: self.class.form_control_class }.merge(html_options)
       form_builder.collection_select(attr, collection, value_method, text_method, select_options, html_options)
+    end
+    
+    def select(attr, choices, select_options = {}, html_options = {})
+      html_options = { class: self.class.form_control_class }.merge(html_options)
+      form_builder.select(attr, choices, select_options, html_options)
     end
     
     def radio_button_group(attr, options, html_options = {})

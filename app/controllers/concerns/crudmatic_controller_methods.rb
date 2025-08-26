@@ -4,6 +4,7 @@ module CrudmaticControllerMethods
   included do
     rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
     helper Crudmatic::ExtendableHelper
+    include CrudmaticHelper
     
     before_action :set_record, only: [:show, :edit, :update, :destroy]
 
@@ -100,7 +101,7 @@ module CrudmaticControllerMethods
       end
     else
       respond_to do |format|
-        format.html { render :new }
+        format.html { render_with_engine_fallback('new') }
         format.json { render json: { errors: @record.errors.full_messages } }
       end
     end
@@ -119,7 +120,7 @@ module CrudmaticControllerMethods
       end
     else
       respond_to do |format|
-        format.html { render :edit }
+        format.html { render_with_engine_fallback('edit') }
         format.json { render json: { errors: @record.errors.full_messages } }
       end
     end
@@ -212,7 +213,7 @@ module CrudmaticControllerMethods
   protected
 
   # Try host app's controller's views first.
-  # If no override exists, then fall back to engine template (framework-specific or default)
+  # If no override exists, then fall back to framework-specific engine template
   def render_with_engine_fallback(action = action_name)
     framework = Rails.application.config.crudmatic&.css_framework || :bootstrap
     
@@ -220,13 +221,9 @@ module CrudmaticControllerMethods
     if lookup_context.exists?("#{controller_path}/#{action}", [], true)
       render "#{controller_path}/#{action}"
     
-    # 2. Try framework-specific engine template, IE, app/view/crudmatic/tailwind/index.html.erb
-    elsif framework != :bootstrap && lookup_context.exists?("crudmatic/#{framework}/#{action}", [], true)
-      render template: "crudmatic/#{framework}/#{action}"
-    
-    # 3. Fall back to default engine template, IE, app/view/crudmatic/index.html.erb
+    # 2. Always use framework-specific engine template
     else
-      render template: "crudmatic/#{action}"
+      render template: "crudmatic/#{framework}/#{action}"
     end
   end
   
@@ -281,7 +278,7 @@ module CrudmaticControllerMethods
   # Only allow a trusted parameter "safe list" through.
   def record_params
     tmp_record   = model_class.new # used to get input type
-    klass_sym    = model_class.model_name.singular.underscore.to_sym
+    klass_sym    = model_class.model_name.param_key.to_sym
     simple_attrs = model_class.permitted_attributes
 
     array_attrs = []
@@ -296,13 +293,17 @@ module CrudmaticControllerMethods
     # end.compact.to_h
     
     # Replicate this syntax .permit(:name, :description, friends: [])
-    out = params.require(klass_sym).permit(*simple_attrs, **array_attrs)
+    if array_attrs.any?
+      out = params.require(klass_sym).permit(*simple_attrs, **array_attrs)
+    else
+      out = params.require(klass_sym).permit(*simple_attrs)
+    end
     out
   end
 
   # same as record params, but removes where param value is is nil
   def bulk_record_params
-    klass_sym = model_class.model_name.singular.underscore.to_sym
+    klass_sym = model_class.model_name.param_key.to_sym
     attrs = model_class.permitted_attributes.reduce([]) do |acc, a|
       # NOTE, this does not support bulk updates to nested attributes for associated models
       if a.is_a?(Symbol) && params[klass_sym]

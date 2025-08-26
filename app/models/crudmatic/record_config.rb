@@ -125,17 +125,26 @@ module Crudmatic
           # Handle association attributes like {parent: [:id, :name]}
           attr.keys.first
         else
-          # Check if it's a has_many relationship that needs _ids
-          manys = @model_class.reflect_on_all_associations(:has_many)
-          manys += @model_class.reflect_on_all_associations(:has_and_belongs_to_many)
+          # Check if it's a belongs_to relationship that needs _id
+          belongs_tos = @model_class.reflect_on_all_associations(:belongs_to)
+          belongs_to_assoc = belongs_tos.find { |a| a.name.to_s == attr.to_s }
           
-          assoc_name = attr.to_s.sub(/_ids$/, '').pluralize
-          assoc = manys.find { |m| m.name.to_s == assoc_name }
-          
-          if assoc
-            { "#{attr.to_s.singularize}_ids".to_sym => [] }
+          if belongs_to_assoc
+            # For belongs_to associations, return the foreign key name
+            "#{attr}_id".to_sym
           else
-            attr
+            # Check if it's a has_many relationship that needs _ids
+            manys = @model_class.reflect_on_all_associations(:has_many)
+            manys += @model_class.reflect_on_all_associations(:has_and_belongs_to_many)
+            
+            assoc_name = attr.to_s.sub(/_ids$/, '').pluralize
+            assoc = manys.find { |m| m.name.to_s == assoc_name }
+            
+            if assoc
+              { "#{attr.to_s.singularize}_ids".to_sym => [] }
+            else
+              attr
+            end
           end
         end
       end

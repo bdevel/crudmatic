@@ -1,0 +1,55 @@
+<%= form_for record, html: { class: "space-y-6" } do |f| %>
+  <% if record.errors.any? %>
+    <div class="rounded-md bg-red-50 p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">
+            <%= pluralize(record.errors.count, "error") %> prohibited this record from being saved:
+          </h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc space-y-1 pl-5">
+              <% record.errors.full_messages.each do |msg| %>
+                <li><%= msg %></li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <% record.class.editable_attributes.each do |attr| %>
+      <div class="<%= css_classes.form_group_class %>">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:space-x-4">
+          <label class="block text-sm font-medium text-gray-700 sm:w-32 sm:flex-shrink-0 sm:pt-2">
+            <%= model_attr_label(record, attr) %>
+          </label>
+          <div class="mt-1 sm:mt-0 sm:flex-1">
+            <%= crud_edit_attr f, attr %>
+            <% note = input_note_for(record, attr) %>
+            <% if note || record.respond_to?(attr.to_s + "_input_notes") %>
+              <p class="mt-2 text-sm text-gray-500">
+                <%= note || record.send(attr.to_s + "_input_notes") %>
+              </p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+    <%= link_to "Cancel", index_path(record.class), class: "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+    <% if record.new_record? %>
+      <%= f.submit 'Create', class: "inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+    <% else %>
+      <%= f.submit 'Save Changes', class: "inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+    <% end %>
+  </div>
+<% end %>

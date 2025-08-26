@@ -31,8 +31,23 @@ module CrudmaticRecord
       send(fn)
     else
       a = self.class.reflect_on_all_associations(:belongs_to).select{|a| a.name.to_s == name.to_s}.first
-      scope = a.klass.all
-      scope = apply_default_sort_to_scope(scope, a.klass)
+      return [] unless a
+      
+      # Safely resolve the association class
+      begin
+        klass = a.klass
+      rescue NameError => e
+        # Try to constantize the class_name if klass fails
+        begin
+          klass = a.class_name.constantize
+        rescue NameError
+          Rails.logger.warn "Could not resolve association class for #{name}: #{e.message}"
+          return []
+        end
+      end
+      
+      scope = klass.all
+      scope = apply_default_sort_to_scope(scope, klass)
       scope
     end
   end

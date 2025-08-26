@@ -168,6 +168,18 @@ module CrudmaticHelper
     )
   end
 
+  def render_crudmatic_partial(partial_name, local_vars = {})
+    framework = Rails.application.config.crudmatic&.css_framework || :bootstrap
+    
+    # Try framework-specific partial first
+    if framework != :bootstrap && lookup_context.exists?("crudmatic/#{framework}/#{partial_name}", [], true)
+      render partial: "crudmatic/#{framework}/#{partial_name}", locals: local_vars
+    else
+      # Fall back to default partial
+      render partial: "crudmatic/#{partial_name}", locals: local_vars
+    end
+  end
+
   def crud_edit_attr(form, attr, settings=nil)
     settings = {} if settings.nil?
     record = form.object
@@ -512,43 +524,80 @@ module CrudmaticHelper
   end
   
   def index_path(klass)
-    klass = controller.model_class unless klass.respond_to?(:model_name)
-    send("#{klass.model_name.plural.underscore}_path")
+    # Handle both helper context and controller context
+    if respond_to?(:controller)
+      klass = controller.model_class unless klass.respond_to?(:model_name)
+      controller_path = controller.controller_path
+    else
+      klass = self.model_class unless klass.respond_to?(:model_name)
+      controller_path = self.controller_path
+    end
+    url_for(controller: controller_path, action: 'index', only_path: true)
+  rescue ActionController::UrlGenerationError
+    nil
   end
 
   def new_path(klass)
-    klass = controller.model_class unless klass.respond_to?(:model_name)
-    send("new_#{klass.model_name.singular.underscore}_path") rescue nil
+    # Handle both helper context and controller context
+    if respond_to?(:controller)
+      klass = controller.model_class unless klass.respond_to?(:model_name)
+      controller_path = controller.controller_path
+    else
+      klass = self.model_class unless klass.respond_to?(:model_name)
+      controller_path = self.controller_path
+    end
+    url_for(controller: controller_path, action: 'new', only_path: true)
+  rescue ActionController::UrlGenerationError
+    nil
   end
   
   def view_path(record)
     if record.respond_to?(:new_record?) && record.new_record?
       nil # use new_or_edit
-    elsif record.respond_to?(:model_name)
-      send("#{record.model_name.singular.underscore}_path", record) rescue nil
+    elsif record.is_a?(Class)
+      # If it's a class, we can't show a specific record
+      nil
+    elsif record.respond_to?(:model_name) && record.respond_to?(:id)
+      # Handle both helper context (has controller method) and controller context (self is controller)
+      controller_path = respond_to?(:controller) ? controller.controller_path : self.controller_path
+      url_for(controller: controller_path, action: 'show', id: record.id, only_path: true)
     else
-      name = record.class.to_s.downcase.gsub(' ', '_')
-      send("#{name}_path", record) rescue nil
+      nil
     end
+  rescue ActionController::UrlGenerationError
+    nil
   end
   
   def edit_path(record)
     if record.respond_to?(:new_record?) && record.new_record?
       nil # use new_or_edit
+    elsif record.is_a?(Class)
+      # If it's a class, we can't edit a specific record
+      nil
+    elsif record.respond_to?(:model_name) && record.respond_to?(:id)
+      # Handle both helper context (has controller method) and controller context (self is controller)
+      controller_path = respond_to?(:controller) ? controller.controller_path : self.controller_path
+      url_for(controller: controller_path, action: 'edit', id: record.id, only_path: true)
     else
-      send("edit_#{record.model_name.singular.underscore}_path", record) rescue nil
+      nil
     end
+  rescue ActionController::UrlGenerationError
+    nil
   end
 
   def bulk_path(klass)
-    send("bulk_#{klass.model_name.plural.underscore}_path")
+    # Handle both helper context and controller context
+    controller_path = respond_to?(:controller) ? controller.controller_path : self.controller_path
+    url_for(controller: controller_path, action: 'bulk', only_path: true)
+  rescue ActionController::UrlGenerationError
+    nil
   end
   
   def new_or_edit_path(record)
     if record.respond_to?(:new_record?) && record.new_record?
-      send("new_#{record.record_name.singular}_path", record) rescue nil
+      new_path(record.class)
     else
-      send("edit_#{record.model_name.singular.underscore}_path", record) rescue nil
+      edit_path(record)
     end
   end
 

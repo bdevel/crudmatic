@@ -1,0 +1,18 @@
+<% show_attrs = local_assigns[:attrs] || record.class.show_attributes %>
+<div class="space-y-6">
+  <% show_attrs.each do |f| %>
+    <div class="flex flex-col sm:flex-row">
+      <dt class="text-sm font-medium text-gray-500 sm:w-32 sm:flex-shrink-0">
+        <%= model_attr_label(record, f) %>
+      </dt>
+      <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:ml-6 sm:flex-1">
+        <% value = formatted_value(record, f, :show) %>
+        <% if value.present? %>
+          <%= value %>
+        <% else %>
+          <span class="text-gray-400 italic">Not set</span>
+        <% end %>
+      </dd>
+    </div>
+  <% end %>
+</div>
