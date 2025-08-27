@@ -272,7 +272,12 @@ module CrudmaticControllerMethods
 
   # Use callbacks to share common setup or constraints between actions.
   def set_record
-    @record = records_scope.find(params[:id])
+    public_id_field = model_class.crudmatic_config.public_id
+    if public_id_field
+      @record = records_scope.find_by!(public_id_field => params[:id])
+    else
+      @record = records_scope.find(params[:id])
+    end
   end
 
   # Only allow a trusted parameter "safe list" through.

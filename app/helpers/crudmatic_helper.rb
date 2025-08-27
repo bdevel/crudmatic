@@ -365,9 +365,9 @@ module CrudmaticHelper
         if val.first.respond_to?(:keys) && listing_attributes.blank?
           listing_attributes = val.first.keys
         end
-        return render :partial => 'crudmatic/listing', locals: {records: val, 
+        return render_with_framework_fallback('listing', {records: val, 
           actions: listing_actions,
-          attributes: listing_attributes}
+          attributes: listing_attributes})
         
       elsif context == :listing || (val.is_a?(Array) && !val.first.is_a?(Hash) && !val.first.class.respond_to?(:index_attributes))
         # is a simple type. TODO, better way to check than this condition?
@@ -382,18 +382,18 @@ module CrudmaticHelper
           listing_attributes = val.first.keys
         end
         
-        return render :partial => 'crudmatic/listing', locals: {records: val, 
+        return render_with_framework_fallback('listing', {records: val, 
           actions: listing_actions,
-          attributes: listing_attributes}
+          attributes: listing_attributes})
         
       elsif  val.is_a?(Hash)
         return render :partial => 'crudmatic/hashmap_show', locals: {record: val, 
           #actions: listing_actions,
           attributes: val.keys}
       else
-        return render :partial => 'crudmatic/listing', locals: {records: val, 
+        return render_with_framework_fallback('listing', {records: val, 
           actions: listing_actions,
-          attributes: listing_attributes}
+          attributes: listing_attributes})
       end
       
     elsif val.respond_to?(:model_name)
@@ -560,7 +560,15 @@ module CrudmaticHelper
     elsif record.respond_to?(:model_name) && record.respond_to?(:id)
       # Handle both helper context (has controller method) and controller context (self is controller)
       controller_path = respond_to?(:controller) ? controller.controller_path : self.controller_path
-      url_for(controller: controller_path, action: 'show', id: record.id, only_path: true)
+      
+      # Check if model has public_id configured
+      public_id_field = record.class.crudmatic_config.public_id
+      if public_id_field && record.respond_to?(public_id_field)
+        id_value = record.send(public_id_field)
+        url_for(controller: controller_path, action: 'show', id: id_value, only_path: true)
+      else
+        url_for(controller: controller_path, action: 'show', id: record.id, only_path: true)
+      end
     else
       nil
     end
@@ -577,7 +585,15 @@ module CrudmaticHelper
     elsif record.respond_to?(:model_name) && record.respond_to?(:id)
       # Handle both helper context (has controller method) and controller context (self is controller)
       controller_path = respond_to?(:controller) ? controller.controller_path : self.controller_path
-      url_for(controller: controller_path, action: 'edit', id: record.id, only_path: true)
+      
+      # Check if model has public_id configured
+      public_id_field = record.class.crudmatic_config.public_id
+      if public_id_field && record.respond_to?(public_id_field)
+        id_value = record.send(public_id_field)
+        url_for(controller: controller_path, action: 'edit', id: id_value, only_path: true)
+      else
+        url_for(controller: controller_path, action: 'edit', id: record.id, only_path: true)
+      end
     else
       nil
     end
@@ -638,6 +654,11 @@ module CrudmaticHelper
     # nil means allow all. False means no actions
     return false if ok_actions == false
     ok_actions.nil? || (ok_actions == true) || ok_actions.include?(action)
+  end
+
+  def render_with_framework_fallback(template, locals = {})
+    framework = Rails.application.config.crudmatic&.css_framework || :bootstrap
+    render partial: "crudmatic/#{framework}/#{template}", locals: locals
   end
 
   private

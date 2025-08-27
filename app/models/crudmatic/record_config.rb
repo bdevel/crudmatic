@@ -11,7 +11,7 @@ module Crudmatic
       case type
 
       # store Record level configs on  @configs[type]
-      when :index_attributes, :show_attributes, :edit_attributes, :bulk_editable_attributes, :search_attributes, :api_attributes, :filter_attributes, :pagination_limit, :index_order
+      when :index_attributes, :show_attributes, :edit_attributes, :bulk_editable_attributes, :search_attributes, :api_attributes, :filter_attributes, :pagination_limit, :index_order, :public_id
         @configs[type] = args.first
 
       # Store attribute specific configs under  @configs[type][attr_name.to_sym]
@@ -109,6 +109,10 @@ module Crudmatic
     
     def pagination_limit
       @configs[:pagination_limit] || 50
+    end
+
+    def public_id
+      @configs[:public_id]
     end
     
     def index_order
