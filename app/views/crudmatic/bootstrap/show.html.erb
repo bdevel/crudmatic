@@ -2,13 +2,13 @@
   <h2>Not Found</h2>
   <p>No information to show.</p>
 <% else %>
-  <%= render 'crudmatic/nav', record: @record, actions: controller.crud_actions %>
-  <%= render 'crudmatic/header', record: @records %>
+  <%= render 'crudmatic/bootstrap/nav', record: @record, actions: controller.crud_actions %>
+  <%= render 'crudmatic/bootstrap/header', record: @records %>
 
   <% begin %>
     <%= render partial: "#{controller.model_class.model_name.plural}/show_extra" %>
   <% rescue ActionView::MissingTemplate => e %>
   <% end %>
 
-  <%= render 'crudmatic/show', record: @record %>
+  <%= render 'crudmatic/bootstrap/show', record: @record %>
 <% end %>

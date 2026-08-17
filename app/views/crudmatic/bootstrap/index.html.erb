@@ -1,5 +1,5 @@
-<%= render 'crudmatic/nav', record: controller.model_class, actions: controller.crud_actions %>
-<%= render 'crudmatic/header', record: @records %>
+<%= render 'crudmatic/bootstrap/nav', record: controller.model_class, actions: controller.crud_actions %>
+<%= render 'crudmatic/bootstrap/header', record: @records %>
 
 <% begin %>
   <%= render partial: "#{controller.to_s.underscore.sub('_controller', '').gsub(' ', '_')}/index_extra" %>
@@ -11,7 +11,9 @@
     No records to show.
   </div>
 <% else %>
-  <%= render 'crudmatic/listing', records: @records, actions: controller.crud_actions, attributes: @attributes %>
+  <%# Delete is intentionally omitted from list rows (destructive on a dense
+      table); it stays available on the show/edit nav. %>
+  <%= render 'crudmatic/bootstrap/listing', records: @records, actions: (controller.crud_actions - [ :destroy ]), attributes: @attributes %>
   
   <!-- Pagination controls -->
   <% if @total_count > @limit %>

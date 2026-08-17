@@ -51,7 +51,10 @@
       <% if record && action_ok?(local_assigns[:actions], :destroy) %>
         <% if request.path != index_path(record) && request.path != new_path(record) %>
           <li class="nav-item">
-            <%= link_to record, data: { "turbo-method": :delete, "turbo-confirm": "Are you sure you want to delete #{record}?" }, class: 'nav-link' do %>
+            <%#- button_to (real form) so destroy works without Turbo/UJS, and via
+                  view_path so it respects the controller namespace (bare `link_to
+                  record` would resolve to a top-level path). -%>
+            <%= button_to view_path(record), method: :delete, class: 'nav-link btn btn-link p-0', form: { class: 'd-inline', data: { turbo_confirm: "Are you sure you want to delete #{record}?" } } do %>
               <i class="bi bi-trash"></i>
               Delete
             <% end %>
@@ -70,15 +73,18 @@
       <% rescue ActionView::MissingTemplate => e %>
       <% end %>
 
-      <div class="<%= css_classes.d_flex_class %> <%= css_classes.gap_2_class %>">
-        <% if can_search?(record) %>
-          <%= render partial: 'crudmatic/search' %>
-        <% end %>
-        
-        <% if can_filter?(record) %>
-          <%= render 'crudmatic/nav_filter_dropdowns', model_class: controller.model_class %>
-        <% end %>
-      </div>
+      <%# Search + filters are index-only tools; hide them on show/edit/new. %>
+      <% if params[:action] == "index" %>
+        <div class="<%= css_classes.d_flex_class %> <%= css_classes.gap_2_class %>">
+          <% if can_search?(record) %>
+            <%= render partial: 'crudmatic/bootstrap/search' %>
+          <% end %>
+
+          <% if can_filter?(record) %>
+            <%= render 'crudmatic/bootstrap/nav_filter_dropdowns', model_class: controller.model_class %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 </nav>

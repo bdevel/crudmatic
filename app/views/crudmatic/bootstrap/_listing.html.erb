@@ -65,7 +65,9 @@
                           <% end %>
                         <% end %>
                         <% if action_ok?(local_assigns[:actions], :destroy) %>
-                          <%= link_to item, data: { "turbo-method": :delete, "turbo-confirm": "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button' do %>
+                          <%#- button_to (real form) so destroy works without Turbo/UJS,
+                                and via view_path so it respects the controller namespace. -%>
+                          <%= button_to view_path(item), method: :delete, class: css_classes.btn_outline_danger_class, form: { class: 'd-inline', data: { turbo_confirm: "Are you sure you want to delete #{item}?" } } do %>
                             <i class="bi bi-trash"></i>
                             Delete
                           <% end %>
@@ -90,7 +92,9 @@
                         <% end %>
                       <% end %>
                       <% if action_ok?(local_assigns[:actions], :destroy) %>
-                        <%= link_to item, data: { "turbo-method": :delete, "turbo-confirm": "Are you sure you want to delete #{item}?" }, class: css_classes.btn_outline_danger_class, role: 'button' do %>
+                        <%#- button_to (real form) so destroy works without Turbo/UJS,
+                              and via view_path so it respects the controller namespace. -%>
+                        <%= button_to view_path(item), method: :delete, class: css_classes.btn_outline_danger_class, form: { class: 'd-inline', data: { turbo_confirm: "Are you sure you want to delete #{item}?" } } do %>
                           <i class="bi bi-trash"></i>
                           Delete
                         <% end %>

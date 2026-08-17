@@ -175,8 +175,8 @@ module CrudmaticHelper
     if framework != :bootstrap && lookup_context.exists?("crudmatic/#{framework}/#{partial_name}", [], true)
       render partial: "crudmatic/#{framework}/#{partial_name}", locals: local_vars
     else
-      # Fall back to default partial
-      render partial: "crudmatic/#{partial_name}", locals: local_vars
+      # Fall back to the active framework's partial
+      render partial: "crudmatic/#{framework}/#{partial_name}", locals: local_vars
     end
   end
 
@@ -285,14 +285,14 @@ module CrudmaticHelper
     elsif type == :checkbox_multi
       opts = record.send("#{attr}_select_options")
       field_name = "#{form.object_name}[#{attr.to_s}][]"
-      render partial: 'crudmatic/check_box_select', locals: {options: opts, field_name: field_name, selected: record.send(attr).to_a}
+      render_with_framework_fallback('check_box_select', {options: opts, field_name: field_name, selected: record.send(attr).to_a})
       
     elsif type == :has_many
       # Adding _ids to the name for checkbox select. Permitted params must have attr_ids allowed
       ids_name = "#{attr.to_s.singularize}_ids"
       opts = record.select_options_for_has_many(attr.to_s.sub(/_ids$/, ''))
       field_name = "#{form.object_name}[#{ids_name}][]"
-      render partial: 'crudmatic/check_box_select', locals: {options: opts, field_name: field_name, selected: record.send(ids_name)}
+      render_with_framework_fallback('check_box_select', {options: opts, field_name: field_name, selected: record.send(ids_name)})
     else
       raise "unknown form input type for '#{type}'"
     end
@@ -337,6 +337,20 @@ module CrudmaticHelper
     end
     
     val = record_attr_value(record, attr)
+
+    # Per-attribute display override, mirroring crud_edit_attr's `_<attr>_input`
+    # lookup on the input side. If app/views/<model_plural>/_<attr>_display.html.*
+    # exists, render it instead of the default type-based formatting below.
+    # Locals: record, attribute, value, context (:show / :listing / nil).
+    # Uses lookup_context.exists? (not exception-driven) since this runs once per
+    # cell on index pages.
+    if !attr.is_a?(Hash) && record.class.respond_to?(:model_name)
+      display_plural = record.class.model_name.plural
+      if lookup_context.exists?("#{attr}_display", [ display_plural ], true)
+        return render(partial: "#{display_plural}/#{attr}_display",
+                      locals: { record: record, attribute: attr, value: val, context: context })
+      end
+    end
 
     if attr.is_a?(Hash)
       # Ex, attr may be {:latest_metrics => [:attr, :attr_specific, :value, :created_at]}
@@ -387,9 +401,8 @@ module CrudmaticHelper
           attributes: listing_attributes})
         
       elsif  val.is_a?(Hash)
-        return render :partial => 'crudmatic/hashmap_show', locals: {record: val, 
-          #actions: listing_actions,
-          attributes: val.keys}
+        return render_with_framework_fallback('hashmap_show', {record: val,
+          attributes: val.keys})
       else
         return render_with_framework_fallback('listing', {records: val, 
           actions: listing_actions,
@@ -399,8 +412,8 @@ module CrudmaticHelper
     elsif val.respond_to?(:model_name)
       # Check if we have custom attributes to display for this single object
       if listing_attributes && listing_attributes.any?
-        return render :partial => 'crudmatic/show', locals: {record: val, 
-          attrs: listing_attributes}
+        return render_with_framework_fallback('show', {record: val,
+          attrs: listing_attributes})
       else
         path = view_path(val)
         

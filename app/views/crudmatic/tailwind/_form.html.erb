@@ -1,4 +1,7 @@
-<%= form_for record, html: { class: "space-y-6" } do |f| %>
+<%# Namespace-aware action URL — see the note in bootstrap/_form.html.erb. %>
+<% form_url    = record.new_record? ? index_path(record.class) : view_path(record) %>
+<% form_method = record.new_record? ? :post : :patch %>
+<%= form_for record, url: form_url, method: form_method, html: { class: "space-y-6" } do |f| %>
   <% if record.errors.any? %>
     <div class="rounded-md bg-red-50 p-4">
       <div class="flex">
