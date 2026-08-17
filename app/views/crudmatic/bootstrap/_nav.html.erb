@@ -53,8 +53,11 @@
           <li class="nav-item">
             <%#- button_to (real form) so destroy works without Turbo/UJS, and via
                   view_path so it respects the controller namespace (bare `link_to
-                  record` would resolve to a top-level path). -%>
-            <%= button_to view_path(record), method: :delete, class: 'nav-link btn btn-link p-0', form: { class: 'd-inline', data: { turbo_confirm: "Are you sure you want to delete #{record}?" } } do %>
+                  record` would resolve to a top-level path). No Turbo/UJS here, so
+                  the confirm is the form's onsubmit (data-turbo-confirm is inert);
+                  drop p-0 so the button keeps the same padding as the sibling
+                  nav-links instead of riding higher than them. -%>
+            <%= button_to view_path(record), method: :delete, class: 'nav-link btn btn-link', form: { class: 'd-inline', onsubmit: "return confirm('Are you sure you want to delete #{j record.to_s}?')" } do %>
               <i class="bi bi-trash"></i>
               Delete
             <% end %>
